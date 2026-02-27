@@ -15,13 +15,18 @@
     .switch-link { float: right; font-size: 13px; color: #0084ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
     .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; cursor: pointer; }
     #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
+    
+    /* Nuovi stili per Risultati Ordinati */
+    .res-riga { display: grid; grid-template-columns: 1fr 1fr 1fr 80px; gap: 5px; padding: 12px; border-bottom: 1px solid #eee; align-items: center; font-size: 13px; }
+    .res-header { font-weight: bold; background: #f8f9fa; color: #606770; text-transform: uppercase; font-size: 11px; }
+    .qta-badge { background: #e7f3ff; color: #0084ff; padding: 5px 8px; border-radius: 6px; font-weight: bold; text-align: center; }
   </style>
 </head>
 <body>
   <div id="box-login" style="display:none">
     <h1>🔒 Accesso Pro</h1>
     <input type="password" id="inp-pass" placeholder="Password">
-    <button class="btn-main" style="background:#0084ff; margin-top:10px;" onclick="eseguiLogin()">ENTRA</button>
+    <button class="btn-main" style="background:#0084ff; margin-top:10px" onclick="eseguiLogin()">ENTRA</button>
   </div>
   <div id="box-home" style="display:none">
     <h1>📦 Magazzino Pranio</h1>
@@ -65,9 +70,15 @@
     <label>Taglie</label><div id="f-t" class="griglia"></div>
     <button class="btn-main" style="background:#28a745; margin-top:20px" onclick="cerca()">🔍 VEDI GIACENZE</button>
   </div>
-  <div id="box-res" class="sezione">
+  <div id="box-res" class="sezione" style="padding: 10px;">
     <button onclick="mostra('box-dash')">⬅️ Filtri</button>
-    <div id="list-res"></div>
+    <h3 id="tit-res-art" style="margin: 15px 0 10px 0; font-size: 16px;"></h3>
+    <div style="background: white; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
+      <div class="res-riga res-header">
+        <span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span>
+      </div>
+      <div id="list-res"></div>
+    </div>
   </div>
 
   <script>
@@ -87,7 +98,30 @@
     function salva() { google.script.run.withSuccessHandler(function() { alert("Salvato!"); location.reload(); }).registraMovimentiBatch(buffer); }
     function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; document.getElementById('list-art').innerHTML = "⏳ Calcolo..."; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}')"><span><b>${n}</b></span><span style="color:#0084ff; font-weight:bold">${res[n]} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
     function apriDashInv(n) { art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; disegna(db.marche, 'f-m', 'm', false); disegna(db.colori, 'f-c', 'c', false); disegna(db.taglie, 'f-t', 't', false); }
-    function cerca() { var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText); var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); mostra('box-res'); document.getElementById('list-res').innerHTML = "Caricamento..."; google.script.run.withSuccessHandler(function(inv) { var h = ""; Object.keys(inv).forEach(k => h += `<div class="card"><b>${k}</b><b style="color:#28a745">${inv[k].qta} pz</b></div>`); document.getElementById('list-res').innerHTML = h || "Vuoto"; }).getRisultatiRicerca(art_cerca, m, t, c); }
+    
+    function cerca() { 
+      var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); 
+      var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText); 
+      var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); 
+      mostra('box-res'); 
+      document.getElementById('tit-res-art').innerText = art_cerca;
+      document.getElementById('list-res').innerHTML = "<div style='padding:20px'>⏳ Caricamento...</div>"; 
+      google.script.run.withSuccessHandler(function(inv) { 
+        var h = ""; 
+        var chiavi = Object.keys(inv).sort(); // Ordiniamo alfabeticamente per Marca
+        chiavi.forEach(k => { 
+          var parti = k.split(" | ");
+          h += `<div class="res-riga">
+                  <span>${parti[0] || "-"}</span>
+                  <span>${parti[1] || "-"}</span>
+                  <span>${parti[2] || "-"}</span>
+                  <div class="qta-badge">${inv[k].qta}</div>
+                </div>`; 
+        }); 
+        document.getElementById('list-res').innerHTML = h || "<div style='padding:20px'>Nessun dato trovato</div>"; 
+      }).getRisultatiRicerca(art_cerca, m, t, c); 
+    }
+    
     function mostra(id) { document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none'); document.getElementById(id).style.display='block'; }
   </script>
 </body>
