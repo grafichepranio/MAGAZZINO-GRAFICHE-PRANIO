@@ -2,8 +2,6 @@
 <html>
 <head>
   <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
     .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
@@ -20,6 +18,8 @@
     .switch-link { float: right; font-size: 13px; color: #0084ff; font-weight: bold; cursor: pointer; text-transform: none; text-decoration: underline; }
     .thumb { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
     .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; }
+    
+    /* Stili per il Login */
     #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
     #box-login h1 { margin-top: 0; color: #1c1e21; }
     #box-login input { text-align: center; font-size: 18px; margin-bottom: 15px; }
@@ -105,42 +105,14 @@
   </div>
 
   <script>
-    // --- PONTE DI COLLEGAMENTO GITHUB -> GOOGLE ---
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
-
-    const google = {
-      script: {
-        run: {
-          withSuccessHandler: function(callback) {
-            return new Proxy({}, {
-              get(target, functionName) {
-                return async function(...args) {
-                  try {
-                    const resp = await fetch(SCRIPT_URL, {
-                      method: "POST",
-                      body: JSON.stringify({ azione: functionName, args: args })
-                    });
-                    const data = await resp.json();
-                    if (callback) callback(data);
-                  } catch (e) {
-                    console.error("Errore chiamata GAS:", e);
-                    alert("Errore di connessione al database.");
-                  }
-                };
-              }
-            });
-          }
-        }
-      }
-    };
-
-    // --- IL TUO CODICE ORIGINALE (INALTERATO) ---
     var db = {}, m_tipo = "", m_sel = { m:"", c:"", t:"" }, bufferMovimenti = [];
-    var isArtNuovo = false, isCatNuova = false, art_cerca = "";
+    var isArtNuovo = false, isCatNuova = false;
 
+    // --- LOGICA DI ACCESSO CON REGISTRO ---
     window.onload = function() {
       var utenteSalvato = localStorage.getItem("magazzino_utente");
       if (utenteSalvato) {
+        // Se c'è già il nome salvato, salta il login e apri l'app
         document.getElementById("box-login").style.display = "none";
         document.getElementById("box-home").style.display = "block";
         document.getElementById("benvenuto-msg").innerText = "👤 Operatore: " + utenteSalvato;
@@ -155,12 +127,18 @@
       var btn = document.getElementById("btn-login");
       var nome = document.getElementById("inp-nome").value.trim();
       var pass = document.getElementById("inp-pass").value;
+      
       if (!nome || !pass) { alert("Inserisci il tuo nome e la password!"); return; }
+      
       btn.innerText = "⏳ Controllo e Registrazione...";
       google.script.run.withSuccessHandler(function(accessoConsentito) {
         if (accessoConsentito) {
+          // Salva il nome nel telefono per non chiederlo se si ricarica la pagina
           localStorage.setItem("magazzino_utente", nome);
-          location.reload();
+          document.getElementById("box-login").style.display = "none";
+          document.getElementById("box-home").style.display = "block";
+          document.getElementById("benvenuto-msg").innerText = "👤 Operatore: " + nome;
+          avviaApp();
         } else {
           alert("❌ Password errata!");
           btn.innerText = "ENTRA NEL MAGAZZINO";
@@ -172,6 +150,8 @@
     function esci() {
       var utente = localStorage.getItem("magazzino_utente");
       if (!utente) return;
+      
+      // Registra l'uscita, cancella la memoria e torna al lucchetto
       google.script.run.withSuccessHandler(function() {
         localStorage.removeItem("magazzino_utente");
         location.reload();
@@ -179,10 +159,18 @@
     }
 
     function avviaApp() {
+      var btnTemp = document.createElement("div");
+      btnTemp.id = "msg-load";
+      btnTemp.innerHTML = "<p style='font-size:12px; color:#666'>⏳ Sincronizzazione dati in corso...</p>";
+      document.getElementById("box-home").appendChild(btnTemp);
+      
       google.script.run.withSuccessHandler(function(res) { 
         db = res; init(); 
+        var loadMsg = document.getElementById("msg-load");
+        if(loadMsg) loadMsg.remove();
       }).getDatiIniziali();
     }
+    // -------------------------
 
     function mostra(id) {
       document.querySelectorAll('.sezione, #box-home').forEach(s => s.style.display='none');
@@ -190,10 +178,10 @@
     }
 
     function init() {
-      var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.forEach(a => sA.add(new Option(a.nome, a.nome)));
-      var sC = document.getElementById("mod-cat-es"); sC.innerHTML = ""; db.categorie.forEach(c => sC.add(new Option(c, c)));
-      var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f)));
-      var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c)));
+      var sA = document.getElementById("mod-art-es"); db.articoli.forEach(a => sA.add(new Option(a.nome, a.nome)));
+      var sC = document.getElementById("mod-cat-es"); db.categorie.forEach(c => sC.add(new Option(c, c)));
+      var sF = document.getElementById("sel-forn"); db.fornitori.forEach(f => sF.add(new Option(f, f)));
+      var sCl = document.getElementById("sel-clie"); db.clienti.forEach(c => sCl.add(new Option(c, c)));
       var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`);
       document.getElementById('list-cat').innerHTML = h;
     }
