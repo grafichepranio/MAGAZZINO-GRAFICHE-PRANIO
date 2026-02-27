@@ -7,7 +7,7 @@
     .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-    label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #606770; text-transform: uppercase; }
+    label { display: block; margin-top: 15px; font-weight: bold; font-size: 12px; color: #606770; text-transform: uppercase; }
     select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
     .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
@@ -16,94 +16,62 @@
     .res-riga { display: grid; grid-template-columns: 1fr 1.2fr 1fr 70px; gap: 5px; padding: 12px; border-bottom: 1px solid #eee; align-items: center; font-size: 13px; }
     .res-header { font-weight: bold; background: #f8f9fa; color: #606770; text-transform: uppercase; font-size: 11px; }
     .qta-badge { background: #e7f3ff; color: #0084ff; padding: 5px; border-radius: 6px; font-weight: bold; text-align: center; }
-    #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
   </style>
 </head>
 <body>
-  <div id="box-login" style="display:none">
-    <h1>🔒 Accesso Pro</h1>
-    <input type="password" id="inp-pass" placeholder="Password">
-    <button class="btn-main" style="background:#0084ff; margin-top:10px" onclick="eseguiLogin()">ENTRA</button>
-  </div>
-  <div id="box-home" style="display:none">
-    <h1>📦 Magazzino Pranio</h1>
-    <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
-    <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
-    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
-    <button onclick="localStorage.clear(); location.reload();" style="margin-top:10px; color:red; border:none; background:none; cursor:pointer">Esci 🚪</button>
-  </div>
+  <div id="box-login" style="display:none"><h1>🔒 Login</h1><input type="password" id="inp-pass" placeholder="Password"><button class="btn-main" style="background:#0084ff; margin-top:10px" onclick="eseguiLogin()">ENTRA</button></div>
+  <div id="box-home" style="display:none"><h1>📦 Magazzino Pranio</h1><button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button><button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button><button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button><button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:none; cursor:pointer; margin-top:10px">Esci 🚪</button></div>
+  
   <div id="box-mod" class="sezione">
-    <button onclick="mostra('box-home')">⬅️ Home</button>
-    <h2 id="tit-mod"></h2>
-    <label>Categoria <span onclick="toggleNuovaCat()" class="switch-link" style="float:right; color:#0084ff; font-size:12px; cursor:pointer">➕ Nuova?</span></label>
-    <select id="mod-cat-es" onchange="filtraArt()"></select>
-    <input type="text" id="mod-cat-nuova" style="display:none" placeholder="Nuova categoria...">
-    <label>Articolo <span onclick="toggleNuovoArt()" class="switch-link" style="float:right; color:#0084ff; font-size:12px; cursor:pointer">➕ Nuovo?</span></label>
-    <select id="mod-art-es"></select>
-    <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Nuovo articolo...">
+    <button onclick="mostra('box-home')">⬅️ Home</button><h2 id="tit-mod"></h2>
+    <label>Categoria</label><select id="mod-cat-es" onchange="filtraArt()"></select>
+    <label>Articolo</label><select id="mod-art-es"></select>
     <label>Quantità</label><input type="number" id="inp-qta" placeholder="0">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
     <label>Colore</label><div id="cubi-c" class="griglia"></div>
     <label>Taglia</label><div id="cubi-t" class="griglia"></div>
     <div id="area-forn"><label>Fornitore</label><select id="sel-forn"></select></div>
     <div id="area-clie" style="display:none"><label>Cliente</label><select id="sel-clie"></select></div>
-    <button class="btn-main" style="background:#0084ff; margin-top:15px" onclick="aggiungi()">➕ AGGIUNGI</button>
-    <div id="lista-temp"></div>
-    <button id="btn-salva" class="btn-main btn-carico" style="display:none; margin-top:20px" onclick="salva()">💾 SALVA TUTTO</button>
+    <button class="btn-main" style="background:#0084ff; margin-top:15px" onclick="aggiungi()">➕ AGGIUNGI ALLA LISTA</button>
+    <div id="lista-temp"></div><button id="btn-salva" class="btn-main btn-carico" style="display:none; margin-top:20px" onclick="salva()">💾 SALVA TUTTO NEL FOGLIO</button>
   </div>
+
   <div id="box-cat" class="sezione"><button onclick="mostra('box-home')">⬅️ Home</button><h2>📦 Categorie</h2><div id="list-cat"></div></div>
   <div id="box-art" class="sezione"><button onclick="mostra('box-cat')">⬅️ Categorie</button><h2 id="tit-cat-inv"></h2><div id="list-art"></div></div>
   <div id="box-dash" class="sezione">
-    <button onclick="mostra('box-art')">⬅️ Articoli</button>
-    <h2 id="tit-dash"></h2>
-    <label>Filtra Marche</label><div id="f-m" class="griglia"></div>
-    <label>Filtra Colori</label><div id="f-c" class="griglia"></div>
-    <label>Filtra Taglie</label><div id="f-t" class="griglia"></div>
-    <button class="btn-main" style="background:#28a745; margin-top:20px" onclick="cerca()">🔄 AGGIORNA FILTRI</button>
-    <h3 style="margin-top:20px; font-size:14px; color:#606770">LISTA DISPONIBILITÀ:</h3>
-    <div style="background: white; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; margin-top:10px">
-      <div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>
-      <div id="list-res"></div>
-    </div>
+    <button onclick="mostra('box-art')">⬅️ Articoli</button><h2 id="tit-dash"></h2>
+    <div id="tot-box" style="background:#0084ff; color:white; padding:15px; border-radius:10px; margin-bottom:20px; font-weight:bold; text-align:center"></div>
+    <label>Filtri Rapidi:</label><div id="f-m" class="griglia"></div><div id="f-c" class="griglia"></div><div id="f-t" class="griglia"></div>
+    <button class="btn-main" style="background:#28a745; margin-top:15px" onclick="cerca()">🔄 AGGIORNA RISULTATI</button>
+    <div id="list-res-box" style="background: white; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; margin-top:10px"></div>
   </div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
     const google = { script: { run: { withSuccessHandler: function(cb) { return new Proxy({}, { get(t, fn) { return async function(...args) { const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ azione: fn, args: args }) }); const d = await r.json(); cb(d); }}}); }}} };
-    var db = {}, m_tipo = "", m_sel = {m:"", c:"", t:""}, buffer = [], art_cerca = "";
+    var db = {}, m_sel = {m:"", c:"", t:""}, buffer = [], art_cerca = "";
 
     window.onload = function() { if(localStorage.getItem("ok")) { mostra('box-home'); avvia(); } else mostra('box-login'); };
     function eseguiLogin() { var p = document.getElementById("inp-pass").value; google.script.run.withSuccessHandler(function(ok) { if(ok) { localStorage.setItem("ok", "1"); location.reload(); } else alert("Errore"); }).verificaPassword("Operatore", p); }
-    function avvia() { google.script.run.withSuccessHandler(function(res) { db = res; var sC = document.getElementById("mod-cat-es"); sC.innerHTML = "<option value=''>Scegli Categoria...</option>"; db.categorie.forEach(c => sC.add(new Option(c, c))); var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f))); var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c))); var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="apriArtInv('${c}')">📦 ${c}</button>`); document.getElementById("list-cat").innerHTML = h; }).getDatiIniziali(); }
+    function avvia() { google.script.run.withSuccessHandler(function(res) { db = res; var sC = document.getElementById("mod-cat-es"); sC.innerHTML = "<option value=''>Scegli...</option>"; db.categorie.forEach(c => sC.add(new Option(c, c))); var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f))); var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c))); var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="apriArtInv('${c}')">📦 ${c}</button>`); document.getElementById("list-cat").innerHTML = h; }).getDatiIniziali(); }
     function filtraArt() { var cat = document.getElementById("mod-cat-es").value; var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.filter(a => a.cat === cat).forEach(a => sA.add(new Option(a.nome, a.nome))); }
-    function toggleNuovaCat() { var e = document.getElementById("mod-cat-es"), n = document.getElementById("mod-cat-nuova"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
-    function toggleNuovoArt() { var e = document.getElementById("mod-art-es"), n = document.getElementById("mod-art-nuovo"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
-    function apriMod(t) { m_tipo = t; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; document.getElementById("area-forn").style.display = t === "Carico" ? "block" : "none"; document.getElementById("area-clie").style.display = t === "Scarico" ? "block" : "none"; disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true); }
+    function apriMod(t) { m_sel = {m:"", c:"", t:""}; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; document.getElementById("area-forn").style.display = t === 'Carico' ? 'block' : 'none'; document.getElementById("area-clie").style.display = t === 'Scarico' ? 'block' : 'none'; disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true); }
     function disegna(lista, id, campo, single) { var cont = document.getElementById(id); cont.innerHTML = ""; (lista || []).forEach(v => { var b = document.createElement("button"); b.className = "cubo"; b.innerText = v; b.onclick = function() { if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); this.classList.toggle('attivo'); m_sel[campo] = this.classList.contains('attivo') ? v : ""; }; cont.appendChild(b); }); }
-    function aggiungi() { var art = document.getElementById("mod-art-nuovo").style.display!=='none' ? document.getElementById("mod-art-nuovo").value : document.getElementById("mod-art-es").value; var cat = document.getElementById("mod-cat-nuova").style.display!=='none' ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value; var qta = document.getElementById("inp-qta").value; if(!art || !qta) return alert("Dati mancanti!"); buffer.push({tipo: m_tipo, articolo: art, cat: cat, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, isNuovo: document.getElementById("mod-art-nuovo").style.display!=='none'}); var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore})</div>`); document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block"; }
-    function salva() { google.script.run.withSuccessHandler(function() { alert("Salvato!"); location.reload(); }).registraMovimentiBatch(buffer); }
-    
-    function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; document.getElementById('list-art').innerHTML = "⏳ Calcolo..."; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}')"><span><b>${n}</b></span><span style="color:#0084ff; font-weight:bold">${res[n] || 0} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
-    
-    function apriDashInv(n) { 
-      art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; 
-      disegna(db.marche, 'f-m', 'm', false); disegna(db.colori, 'f-c', 'c', false); disegna(db.taglie, 'f-t', 't', false);
-      cerca(); // MOSTRA SUBITO LA LISTA APPENA ENTRI
+    function aggiungi() { 
+      var art = document.getElementById("mod-art-es").value; var qta = document.getElementById("inp-qta").value;
+      if(!art || !qta || isNaN(qta)) return alert("Scegli articolo e inserisci un numero in quantità!");
+      buffer.push({tipo: document.getElementById("tit-mod").innerText, articolo: art, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value});
+      var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore})</div>`);
+      document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block";
     }
-    
+    function salva() { google.script.run.withSuccessHandler(function() { alert("Salvato!"); location.reload(); }).registraMovimentiBatch(buffer); }
+    function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}', ${res[n]||0})"><span><b>${n}</b></span><span style="color:#0084ff; font-weight:bold">${res[n]||0} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
+    function apriDashInv(n, t) { art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; document.getElementById('tot-box').innerText = "DISPONIBILITÀ TOTALE: " + t + " pz"; disegna(db.marche, 'f-m', 'm', false); disegna(db.colori, 'f-c', 'c', false); disegna(db.taglie, 'f-t', 't', false); cerca(); }
     function cerca() { 
       var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); 
       var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText); 
       var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); 
-      document.getElementById('list-res').innerHTML = "<div style='padding:20px'>⏳ Aggiornamento...</div>"; 
-      google.script.run.withSuccessHandler(function(inv) { 
-        var h = ""; var chiavi = Object.keys(inv).sort();
-        chiavi.forEach(k => { 
-          var parti = k.split(" | ");
-          h += `<div class="res-riga"><span>${parti[0] || "-"}</span><span>${parti[1] || "-"}</span><span>${parti[2] || "-"}</span><div class="qta-badge">${inv[k].qta}</div></div>`; 
-        }); 
-        document.getElementById('list-res').innerHTML = h || "<div style='padding:20px'>Nessun dato trovato</div>"; 
-      }).getRisultatiRicerca(art_cerca, m, t, c); 
+      google.script.run.withSuccessHandler(function(inv) { var h = '<div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>'; Object.keys(inv).sort().forEach(k => { var p = k.split(" | "); h += `<div class="res-riga"><span>${p[0]}</span><span>${p[1]}</span><span>${p[2]}</span><div class="qta-badge">${inv[k].qta}</div></div>`; }); document.getElementById('list-res-box').innerHTML = h; }).getRisultatiRicerca(art_cerca, m, t, c); 
     }
     function mostra(id) { document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none'); document.getElementById(id).style.display='block'; }
   </script>
