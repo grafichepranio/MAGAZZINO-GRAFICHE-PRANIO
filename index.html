@@ -107,6 +107,7 @@
   </div>
 
   <script>
+    // --- IL TUO NUOVO LINK UNITO ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
 
     async function callGAS(payload) {
@@ -114,7 +115,7 @@
         const resp = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
         return await resp.json();
       } catch (e) {
-        alert("Errore di connessione alla Cucina (Google). Controlla il deployment!");
+        console.error("Errore connessione:", e);
         return null;
       }
     }
@@ -158,7 +159,12 @@
 
     async function avviaApp() {
       const res = await callGAS({ azione: "getDatiIniziali" });
-      if (res) { db = res; init(); }
+      if (res) { 
+        db = res; 
+        init(); 
+      } else {
+        alert("⚠️ Attenzione: l'App non riceve dati. Controlla il Foglio Google e le autorizzazioni!");
+      }
     }
 
     function mostra(id) {
@@ -167,13 +173,17 @@
     }
 
     function init() {
-      if(!db.articoli) { alert("Database scaricato ma incompleto. Controlla il foglio Google!"); return; }
-      var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.forEach(a => sA.add(new Option(a.nome, a.nome)));
-      var sC = document.getElementById("mod-cat-es"); sC.innerHTML = ""; db.categorie.forEach(c => sC.add(new Option(c, c)));
-      var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f)));
-      var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c)));
-      var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`);
-      document.getElementById('list-cat').innerHTML = h;
+      if(!db.categorie || db.categorie.length === 0) {
+        console.warn("Nessuna categoria trovata nel foglio CATEGORIE.");
+      }
+      var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; (db.articoli || []).forEach(a => sA.add(new Option(a.nome, a.nome)));
+      var sC = document.getElementById("mod-cat-es"); sC.innerHTML = ""; (db.categorie || []).forEach(c => sC.add(new Option(c, c)));
+      var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; (db.fornitori || []).forEach(f => sF.add(new Option(f, f)));
+      var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; (db.clienti || []).forEach(c => sCl.add(new Option(c, c)));
+      
+      var h = ""; 
+      (db.categorie || []).forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`);
+      document.getElementById('list-cat').innerHTML = h || "<p style='color:red'>Nessuna categoria configurata!</p>";
     }
 
     function toggleNuovoArt() { isArtNuovo = !isArtNuovo; document.getElementById("mod-art-es").style.display = isArtNuovo ? "none" : "block"; document.getElementById("mod-art-nuovo").style.display = isArtNuovo ? "block" : "none"; document.getElementById("area-cat").style.display = isArtNuovo ? "block" : "none"; document.getElementById("link-art").innerText = isArtNuovo ? "🔙 Usa Esistente" : "➕ Nuovo?"; }
@@ -187,7 +197,6 @@
       document.getElementById("div-forn").style.display = t === "Carico" ? "block" : "none"; document.getElementById("div-clie").style.display = t === "Scarico" ? "block" : "none";
       document.getElementById("lista-temporanea").innerHTML = ""; document.getElementById("btn-salva-finale").style.display = "none";
       
-      // DISEGNO I CUBI CON SICUREZZA
       disegnaCubi(db.marche || [], 'cubi-m', 'm', true); 
       disegnaCubi(db.colori || [], 'cubi-c', 'c', true); 
       disegnaCubi(db.taglie || [], 'cubi-t', 't', true);
@@ -195,7 +204,7 @@
 
     function disegnaCubi(lista, id, campo, single) {
       var cont = document.getElementById(id); cont.innerHTML = "";
-      if (lista.length === 0) { cont.innerHTML = "<small style='color:red'>Dati mancanti</small>"; return; }
+      if (lista.length === 0) { cont.innerHTML = "<small style='color:red'>Nessun dato</small>"; return; }
       lista.forEach(v => {
         var b = document.createElement("button"); b.className = "cubo"; b.innerText = v;
         b.onclick = function() { if(single) { document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); m_sel[campo] = v; } this.classList.toggle('attivo'); };
@@ -235,7 +244,7 @@
 
     async function eseguiSalvataggioFinale() {
       await callGAS({ azione: "registraMovimentiBatch", movimenti: bufferMovimenti });
-      alert("Salvato!"); location.reload();
+      alert("Salvato con successo!"); location.reload();
     }
 
     function apriArt(c) { mostra('box-art'); document.getElementById('tit-cat').innerText = c; var h = ""; db.articoli.filter(a => a.cat === c).forEach(a => h += `<div class="card" onclick="apriDash('${a.nome}')"><b>${a.nome}</b><span>➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }
