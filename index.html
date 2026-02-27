@@ -12,9 +12,9 @@
     .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
     .cubo.attivo { background: #0084ff !important; color: white !important; }
+    .switch-link { float: right; font-size: 12px; color: #0084ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
     .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; cursor: pointer; }
     .res-riga { display: grid; grid-template-columns: 1fr 1.2fr 1fr 70px; gap: 5px; padding: 12px; border-bottom: 1px solid #eee; align-items: center; font-size: 13px; }
-    .res-header { font-weight: bold; background: #f8f9fa; color: #606770; text-transform: uppercase; font-size: 11px; }
     .qta-badge { background: #e7f3ff; color: #0084ff; padding: 5px; border-radius: 6px; font-weight: bold; text-align: center; }
   </style>
 </head>
@@ -24,8 +24,15 @@
   
   <div id="box-mod" class="sezione">
     <button onclick="mostra('box-home')">⬅️ Home</button><h2 id="tit-mod"></h2>
-    <label>Categoria</label><select id="mod-cat-es" onchange="filtraArt()"></select>
-    <label>Articolo</label><select id="mod-art-es"></select>
+    
+    <label>Categoria <span onclick="toggleNuovaCat()" class="switch-link">➕ Nuova?</span></label>
+    <select id="mod-cat-es" onchange="filtraArt()"></select>
+    <input type="text" id="mod-cat-nuova" style="display:none" placeholder="Scrivi nuova categoria...">
+    
+    <label>Articolo <span onclick="toggleNuovoArt()" class="switch-link">➕ Nuovo?</span></label>
+    <select id="mod-art-es"></select>
+    <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Scrivi nuovo articolo...">
+    
     <label>Quantità</label><input type="number" id="inp-qta" placeholder="0">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
     <label>Colore</label><div id="cubi-c" class="griglia"></div>
@@ -41,8 +48,8 @@
   <div id="box-dash" class="sezione">
     <button onclick="mostra('box-art')">⬅️ Articoli</button><h2 id="tit-dash"></h2>
     <div id="tot-box" style="background:#0084ff; color:white; padding:15px; border-radius:10px; margin-bottom:20px; font-weight:bold; text-align:center"></div>
-    <label>Filtri Rapidi:</label><div id="f-m" class="griglia"></div><div id="f-c" class="griglia"></div><div id="f-t" class="griglia"></div>
-    <button class="btn-main" style="background:#28a745; margin-top:15px" onclick="cerca()">🔄 AGGIORNA RISULTATI</button>
+    <label>Filtri:</label><div id="f-m" class="griglia"></div><div id="f-c" class="griglia"></div><div id="f-t" class="griglia"></div>
+    <button class="btn-main" style="background:#28a745; margin-top:15px" onclick="cerca()">🔄 AGGIORNA LISTA</button>
     <div id="list-res-box" style="background: white; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; margin-top:10px"></div>
   </div>
 
@@ -54,17 +61,35 @@
     window.onload = function() { if(localStorage.getItem("ok")) { mostra('box-home'); avvia(); } else mostra('box-login'); };
     function eseguiLogin() { var p = document.getElementById("inp-pass").value; google.script.run.withSuccessHandler(function(ok) { if(ok) { localStorage.setItem("ok", "1"); location.reload(); } else alert("Errore"); }).verificaPassword("Operatore", p); }
     function avvia() { google.script.run.withSuccessHandler(function(res) { db = res; var sC = document.getElementById("mod-cat-es"); sC.innerHTML = "<option value=''>Scegli...</option>"; db.categorie.forEach(c => sC.add(new Option(c, c))); var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f))); var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c))); var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="apriArtInv('${c}')">📦 ${c}</button>`); document.getElementById("list-cat").innerHTML = h; }).getDatiIniziali(); }
+    
     function filtraArt() { var cat = document.getElementById("mod-cat-es").value; var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.filter(a => a.cat === cat).forEach(a => sA.add(new Option(a.nome, a.nome))); }
+    function toggleNuovaCat() { var e = document.getElementById("mod-cat-es"), n = document.getElementById("mod-cat-nuova"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
+    function toggleNuovoArt() { var e = document.getElementById("mod-art-es"), n = document.getElementById("mod-art-nuovo"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
+    
     function apriMod(t) { m_sel = {m:"", c:"", t:""}; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; document.getElementById("area-forn").style.display = t === 'Carico' ? 'block' : 'none'; document.getElementById("area-clie").style.display = t === 'Scarico' ? 'block' : 'none'; disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true); }
     function disegna(lista, id, campo, single) { var cont = document.getElementById(id); cont.innerHTML = ""; (lista || []).forEach(v => { var b = document.createElement("button"); b.className = "cubo"; b.innerText = v; b.onclick = function() { if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); this.classList.toggle('attivo'); m_sel[campo] = this.classList.contains('attivo') ? v : ""; }; cont.appendChild(b); }); }
+    
     function aggiungi() { 
-      var art = document.getElementById("mod-art-es").value; var qta = document.getElementById("inp-qta").value;
-      if(!art || !qta || isNaN(qta)) return alert("Scegli articolo e inserisci un numero in quantità!");
-      buffer.push({tipo: document.getElementById("tit-mod").innerText, articolo: art, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value});
+      var isArtN = document.getElementById("mod-art-nuovo").style.display !== 'none';
+      var art = isArtN ? document.getElementById("mod-art-nuovo").value : document.getElementById("mod-art-es").value;
+      var cat = document.getElementById("mod-cat-nuova").style.display !== 'none' ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value;
+      var qta = document.getElementById("inp-qta").value;
+      if(!art || !qta || isNaN(qta)) return alert("Dati mancanti o quantità errata!");
+      
+      buffer.push({
+        tipo: document.getElementById("tit-mod").innerText, 
+        articolo: art, cat: cat, qta: qta, 
+        marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, 
+        isNuovo: isArtN, 
+        fornitore: document.getElementById("sel-forn").value, 
+        cliente: document.getElementById("sel-clie").value
+      });
+      
       var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore})</div>`);
       document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block";
     }
-    function salva() { google.script.run.withSuccessHandler(function() { alert("Salvato!"); location.reload(); }).registraMovimentiBatch(buffer); }
+    
+    function salva() { google.script.run.withSuccessHandler(function() { alert("Fatto!"); location.reload(); }).registraMovimentiBatch(buffer); }
     function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}', ${res[n]||0})"><span><b>${n}</b></span><span style="color:#0084ff; font-weight:bold">${res[n]||0} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
     function apriDashInv(n, t) { art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; document.getElementById('tot-box').innerText = "DISPONIBILITÀ TOTALE: " + t + " pz"; disegna(db.marche, 'f-m', 'm', false); disegna(db.colori, 'f-c', 'c', false); disegna(db.taglie, 'f-t', 't', false); cerca(); }
     function cerca() { 
