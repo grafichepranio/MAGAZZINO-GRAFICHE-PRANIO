@@ -8,11 +8,11 @@
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
     .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
-    .btn-store { background: #1c1e21; margin-top: 20px; } /* Stile per il tasto Shopify */
+    .btn-store { background: #1c1e21; margin-top: 20px; }
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #606770; text-transform: uppercase; }
     select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-    .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 40px; }
     .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
     .cubo.attivo { background: #0084ff !important; color: white !important; }
     .btn-aggiungi { background: #0084ff; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
@@ -47,7 +47,6 @@
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
     <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
     <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
-
     <button class="btn-main btn-store" onclick="window.open('https://gift-idea-7990.myshopify.com/', '_blank')">🛒 VAI ALLO STORE</button>
   </div>
 
@@ -108,12 +107,16 @@
   </div>
 
   <script>
-    // --- CONFIGURAZIONE CHIAVE ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
 
     async function callGAS(payload) {
-      const resp = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
-      return await resp.json();
+      try {
+        const resp = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+        return await resp.json();
+      } catch (e) {
+        alert("Errore di connessione alla Cucina (Google). Controlla il deployment!");
+        return null;
+      }
     }
 
     var db = {}, m_tipo = "", m_sel = { m:"", c:"", t:"" }, bufferMovimenti = [];
@@ -136,17 +139,14 @@
       var pass = document.getElementById("inp-pass").value;
       if (!nome || !pass) { alert("Dati mancanti!"); return; }
       document.getElementById("btn-login").innerText = "⏳ Controllo...";
-      
-      try {
-        const accesso = await callGAS({ azione: "verificaPassword", nome: nome, pass: pass });
-        if (accesso) {
-          localStorage.setItem("magazzino_utente", nome);
-          location.reload();
-        } else {
-          alert("Password errata!");
-          document.getElementById("btn-login").innerText = "ENTRA NEL MAGAZZINO";
-        }
-      } catch (e) { alert("Errore connessione: " + e); }
+      const accesso = await callGAS({ azione: "verificaPassword", nome: nome, pass: pass });
+      if (accesso) {
+        localStorage.setItem("magazzino_utente", nome);
+        location.reload();
+      } else {
+        alert("Password errata!");
+        document.getElementById("btn-login").innerText = "ENTRA NEL MAGAZZINO";
+      }
     }
 
     async function esci() {
@@ -158,7 +158,7 @@
 
     async function avviaApp() {
       const res = await callGAS({ azione: "getDatiIniziali" });
-      db = res; init();
+      if (res) { db = res; init(); }
     }
 
     function mostra(id) {
@@ -167,6 +167,7 @@
     }
 
     function init() {
+      if(!db.articoli) { alert("Database scaricato ma incompleto. Controlla il foglio Google!"); return; }
       var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.forEach(a => sA.add(new Option(a.nome, a.nome)));
       var sC = document.getElementById("mod-cat-es"); sC.innerHTML = ""; db.categorie.forEach(c => sC.add(new Option(c, c)));
       var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f)));
@@ -185,11 +186,16 @@
       document.getElementById("mod-art-es").style.display = "block"; document.getElementById("mod-art-nuovo").style.display = "none"; document.getElementById("area-cat").style.display = "none"; document.getElementById("link-art").innerText = "➕ Nuovo?";
       document.getElementById("div-forn").style.display = t === "Carico" ? "block" : "none"; document.getElementById("div-clie").style.display = t === "Scarico" ? "block" : "none";
       document.getElementById("lista-temporanea").innerHTML = ""; document.getElementById("btn-salva-finale").style.display = "none";
-      disegnaCubi(db.marche, 'cubi-m', 'm', true); disegnaCubi(db.colori, 'cubi-c', 'c', true); disegnaCubi(db.taglie, 'cubi-t', 't', true);
+      
+      // DISEGNO I CUBI CON SICUREZZA
+      disegnaCubi(db.marche || [], 'cubi-m', 'm', true); 
+      disegnaCubi(db.colori || [], 'cubi-c', 'c', true); 
+      disegnaCubi(db.taglie || [], 'cubi-t', 't', true);
     }
 
     function disegnaCubi(lista, id, campo, single) {
       var cont = document.getElementById(id); cont.innerHTML = "";
+      if (lista.length === 0) { cont.innerHTML = "<small style='color:red'>Dati mancanti</small>"; return; }
       lista.forEach(v => {
         var b = document.createElement("button"); b.className = "cubo"; b.innerText = v;
         b.onclick = function() { if(single) { document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); m_sel[campo] = v; } this.classList.toggle('attivo'); };
@@ -233,7 +239,7 @@
     }
 
     function apriArt(c) { mostra('box-art'); document.getElementById('tit-cat').innerText = c; var h = ""; db.articoli.filter(a => a.cat === c).forEach(a => h += `<div class="card" onclick="apriDash('${a.nome}')"><b>${a.nome}</b><span>➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }
-    function apriDash(n) { art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; disegnaCubi(db.marche, 'f-m', 'm', false); disegnaCubi(db.taglie, 'f-t', 't', false); disegnaCubi(db.colori, 'f-c', 'c', false); }
+    function apriDash(n) { art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; disegnaCubi(db.marche || [], 'f-m', 'm', false); disegnaCubi(db.taglie || [], 'f-t', 't', false); disegnaCubi(db.colori || [], 'f-c', 'c', false); }
     
     async function cerca() {
       var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText);
