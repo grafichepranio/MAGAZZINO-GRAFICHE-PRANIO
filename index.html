@@ -18,6 +18,7 @@
     .btn-aggiungi { background: #0084ff; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     .btn-salva-tutto { background: #28a745; color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 20px; cursor: pointer; display: none; }
     .riga-lista { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #0084ff; font-size: 14px; }
+    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; cursor: pointer; }
     #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
     #box-login button { background: #0084ff; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
   </style>
@@ -28,13 +29,13 @@
     <h1>🔒 Accesso Pro</h1>
     <input type="text" id="inp-nome" placeholder="Il tuo Nome">
     <input type="password" id="inp-pass" placeholder="••••••••">
-    <button id="btn-login" onclick="eseguiLogin()">ENTRA NEL MAGAZZINO</button>
+    <button onclick="eseguiLogin()">ENTRA NEL MAGAZZINO</button>
   </div>
 
   <div id="box-home" style="display:none">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-      <h1 style="margin:0">📦 App Pro</h1>
-      <button onclick="esci()" style="font-size:12px; padding:8px 15px; background:#dc3545; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer">Esci 🚪</button>
+      <h1>📦 App Pro</h1>
+      <button onclick="esci()" style="padding:8px; background:#dc3545; color:white; border:none; border-radius:8px;">Esci 🚪</button>
     </div>
     <div id="benvenuto-msg" style="text-align:left; font-weight:bold; color:#0084ff; margin-bottom:15px;"></div>
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
@@ -44,28 +45,45 @@
   </div>
 
   <div id="box-mod" class="sezione">
-    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Home</button>
-    <h2 id="tit-mod" style="text-align:center"></h2>
-    
-    <label>Articolo <span onclick="toggleNuovoArt()" style="float:right; color:#0084ff; cursor:pointer">➕ Nuovo?</span></label>
+    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold;">⬅️ Home</button>
+    <h2 id="tit-mod"></h2>
+    <label>Articolo</label>
     <select id="mod-art-es"></select>
-    <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Es: Penna C01">
-    
     <label>Quantità</label>
-    <input type="number" id="inp-qta" placeholder="Es. 10">
-
+    <input type="number" id="inp-qta" placeholder="0">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
     <label>Colore</label><div id="cubi-c" class="griglia"></div>
     <label>Taglia</label><div id="cubi-t" class="griglia"></div>
-
     <button class="btn-aggiungi" onclick="aggiungiAllaLista()">➕ AGGIUNGI ALLA LISTA</button>
     <div id="lista-temporanea" style="margin-top:15px"></div>
-    <button id="btn-salva-finale" class="btn-salva-tutto" onclick="preparaSalvataggioBatch()">💾 SALVA TUTTO NEL FOGLIO</button>
+    <button id="btn-salva-finale" class="btn-salva-tutto" onclick="preparaSalvataggioBatch()">💾 SALVA NEL FOGLIO</button>
   </div>
 
   <div id="box-cat" class="sezione">
-    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Home</button>
-    <h2>📦 Categorie</h2><div id="list-cat"></div>
+    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold;">⬅️ Home</button>
+    <h2>📦 Categorie</h2>
+    <div id="list-cat"></div>
+  </div>
+
+  <div id="box-art" class="sezione">
+    <button onclick="mostra('box-cat')" style="color:#0084ff; background:none; border:none; font-weight:bold;">⬅️ Categorie</button>
+    <h2 id="tit-cat"></h2>
+    <div id="list-art"></div>
+  </div>
+
+  <div id="box-dash" class="sezione">
+    <button onclick="mostra('box-art')" style="color:#0084ff; background:none; border:none; font-weight:bold;">⬅️ Articoli</button>
+    <h2 id="tit-dash"></h2>
+    <label>Filtra per Marca/Taglia/Colore</label>
+    <div id="f-m" class="griglia"></div>
+    <div id="f-t" class="griglia"></div>
+    <div id="f-c" class="griglia"></div>
+    <button class="btn-main" style="background:#28a745; margin-top:20px" onclick="cerca()">🔍 VEDI GIACENZE</button>
+  </div>
+
+  <div id="box-res" class="sezione">
+    <button onclick="mostra('box-dash')" style="color:#0084ff; background:none; border:none; font-weight:bold;">⬅️ Filtri</button>
+    <div id="list-res"></div>
   </div>
 
   <script>
@@ -76,7 +94,7 @@
       return await resp.json();
     }
 
-    var db = {}, m_tipo = "", m_sel = { m:"", c:"", t:"" }, bufferMovimenti = [];
+    var db = {}, m_tipo = "", m_sel = { m:"", c:"", t:"" }, bufferMovimenti = [], art_cerca = "";
 
     window.onload = function() {
       var utenteSalvato = localStorage.getItem("magazzino_utente");
@@ -93,10 +111,7 @@
       var nome = document.getElementById("inp-nome").value;
       var pass = document.getElementById("inp-pass").value;
       const accesso = await callGAS({ azione: "verificaPassword", nome: nome, pass: pass });
-      if (accesso) {
-        localStorage.setItem("magazzino_utente", nome);
-        location.reload();
-      } else { alert("Password errata!"); }
+      if (accesso) { localStorage.setItem("magazzino_utente", nome); location.reload(); } else { alert("Password errata!"); }
     }
 
     async function avviaApp() {
@@ -110,31 +125,50 @@
     }
 
     function init() {
+      // Articoli per il Carico/Scarico
       var sA = document.getElementById("mod-art-es"); sA.innerHTML = "";
       (db.articoli || []).forEach(a => sA.add(new Option(a.nome, a.nome)));
       
+      // Categorie per l'Inventario
       var h = ""; 
-      (db.categorie || []).forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`);
-      document.getElementById('list-cat').innerHTML = h;
+      (db.categorie || []).forEach(c => {
+        h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`;
+      });
+      document.getElementById('list-cat').innerHTML = h || "Nessuna categoria";
+    }
+
+    function apriArt(c) {
+      mostra('box-art');
+      document.getElementById('tit-cat').innerText = c;
+      var h = "";
+      db.articoli.filter(a => a.cat === c).forEach(a => {
+        h += `<div class="card" onclick="apriDash('${a.nome}')"><b>${a.nome}</b><span>➡️</span></div>`;
+      });
+      document.getElementById('list-art').innerHTML = h || "Nessun articolo";
+    }
+
+    function apriDash(n) {
+      art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n;
+      disegnaCubi(db.marche, 'f-m', 'm', false);
+      disegnaCubi(db.taglie, 'f-t', 't', false);
+      disegnaCubi(db.colori, 'f-c', 'c', false);
     }
 
     function apriMod(t) {
-      m_tipo = t; 
-      mostra('box-mod'); 
-      document.getElementById("tit-mod").innerText = t;
-      m_sel = {m:"", c:"", t:""};
-      disegnaCubi(db.marche || [], 'cubi-m', 'm');
-      disegnaCubi(db.colori || [], 'cubi-c', 'c');
-      disegnaCubi(db.taglie || [], 'cubi-t', 't');
+      m_tipo = t; mostra('box-mod'); document.getElementById("tit-mod").innerText = t;
+      m_sel = {m:"", c:"", t:""}; bufferMovimenti = []; document.getElementById("lista-temporanea").innerHTML = "";
+      disegnaCubi(db.marche, 'cubi-m', 'm', true);
+      disegnaCubi(db.colori, 'cubi-c', 'c', true);
+      disegnaCubi(db.taglie, 'cubi-t', 't', true);
     }
 
-    function disegnaCubi(lista, id, campo) {
+    function disegnaCubi(lista, id, campo, single) {
       var cont = document.getElementById(id); cont.innerHTML = "";
-      lista.forEach(v => {
+      (lista || []).forEach(v => {
         var b = document.createElement("button"); b.className = "cubo"; b.innerText = v;
         b.onclick = function() { 
-          document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo'));
-          this.classList.add('attivo'); 
+          if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo'));
+          this.classList.toggle('attivo'); 
           m_sel[campo] = v; 
         };
         cont.appendChild(b);
@@ -144,22 +178,30 @@
     function aggiungiAllaLista() {
       var art = document.getElementById("mod-art-es").value;
       var qta = document.getElementById("inp-qta").value;
-      if(!qta) { alert("Inserisci la quantità!"); return; }
+      if(!qta) { alert("Quantità obbligatoria!"); return; }
       bufferMovimenti.push({tipo: m_tipo, articolo: art, marca: m_sel.m, qta: qta, colore: m_sel.c, taglia: m_sel.t});
-      aggiornaLista();
-    }
-
-    function aggiornaLista() {
       var h = "";
       bufferMovimenti.forEach((m, i) => h += `<div class="riga-lista"><span>${m.qta} pz - ${m.articolo} (${m.marca} ${m.colore} ${m.taglia})</span></div>`);
       document.getElementById("lista-temporanea").innerHTML = h;
-      document.getElementById("btn-salva-finale").style.display = bufferMovimenti.length > 0 ? "block" : "none";
+      document.getElementById("btn-salva-finale").style.display = "block";
     }
 
     async function preparaSalvataggioBatch() {
-      document.getElementById("btn-salva-finale").innerText = "⏳ SALVATAGGIO...";
       await callGAS({ azione: "registraMovimentiBatch", movimenti: bufferMovimenti });
-      alert("Salvato!"); location.reload();
+      alert("Registrato!"); location.reload();
+    }
+
+    async function cerca() {
+      var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText);
+      var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText);
+      var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText);
+      mostra('box-res'); document.getElementById('list-res').innerHTML = "⏳ Caricamento...";
+      const inv = await callGAS({ azione: "cerca", nomeArt: art_cerca, marche: m, taglie: t, colori: c });
+      var h = "";
+      Object.keys(inv).forEach(k => {
+        h += `<div class="card"><b>${k}</b><b style="color:#28a745">${inv[k].qta} pz</b></div>`;
+      });
+      document.getElementById('list-res').innerHTML = h || "Nessuna giacenza";
     }
 
     function esci() { localStorage.removeItem("magazzino_utente"); location.reload(); }
