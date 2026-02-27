@@ -6,6 +6,7 @@
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
     .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
+    .btn-sito { background: #343a40; } /* Colore Grigio scuro per il sito */
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 12px; color: #606770; text-transform: uppercase; }
     select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
@@ -20,19 +21,24 @@
 </head>
 <body>
   <div id="box-login" style="display:none"><h1>🔒 Login</h1><input type="password" id="inp-pass" placeholder="Password"><button class="btn-main" style="background:#0084ff; margin-top:10px" onclick="eseguiLogin()">ENTRA</button></div>
-  <div id="box-home" style="display:none"><h1>📦 Magazzino Pranio</h1><button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button><button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button><button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button><button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:none; cursor:pointer; margin-top:10px">Esci 🚪</button></div>
+  
+  <div id="box-home" style="display:none">
+    <h1>📦 Magazzino Pranio</h1>
+    <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
+    <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
+    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
+    <button class="btn-main btn-sito" onclick="window.open('https://gift-idea-7990.myshopify.com/', '_blank')">🛒 VAI ALLO STORE</button>
+    <button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:none; cursor:pointer; margin-top:10px">Esci 🚪</button>
+  </div>
   
   <div id="box-mod" class="sezione">
     <button onclick="mostra('box-home')">⬅️ Home</button><h2 id="tit-mod"></h2>
-    
     <label>Categoria <span onclick="toggleNuovaCat()" class="switch-link">➕ Nuova?</span></label>
     <select id="mod-cat-es" onchange="filtraArt()"></select>
     <input type="text" id="mod-cat-nuova" style="display:none" placeholder="Scrivi nuova categoria...">
-    
     <label>Articolo <span onclick="toggleNuovoArt()" class="switch-link">➕ Nuovo?</span></label>
     <select id="mod-art-es"></select>
     <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Scrivi nuovo articolo...">
-    
     <label>Quantità</label><input type="number" id="inp-qta" placeholder="0">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
     <label>Colore</label><div id="cubi-c" class="griglia"></div>
@@ -75,16 +81,7 @@
       var cat = document.getElementById("mod-cat-nuova").style.display !== 'none' ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value;
       var qta = document.getElementById("inp-qta").value;
       if(!art || !qta || isNaN(qta)) return alert("Dati mancanti o quantità errata!");
-      
-      buffer.push({
-        tipo: document.getElementById("tit-mod").innerText, 
-        articolo: art, cat: cat, qta: qta, 
-        marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, 
-        isNuovo: isArtN, 
-        fornitore: document.getElementById("sel-forn").value, 
-        cliente: document.getElementById("sel-clie").value
-      });
-      
+      buffer.push({tipo: document.getElementById("tit-mod").innerText, articolo: art, cat: cat, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, isNuovo: isArtN, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value});
       var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore})</div>`);
       document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block";
     }
