@@ -8,6 +8,7 @@
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
     .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
+    .btn-store { background: #1c1e21; margin-top: 20px; } /* Stile per il tasto Shopify */
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #606770; text-transform: uppercase; }
     select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
@@ -46,6 +47,8 @@
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
     <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
     <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
+
+    <button class="btn-main btn-store" onclick="window.open('https://gift-idea-7990.myshopify.com/', '_blank')">🛒 VAI ALLO STORE</button>
   </div>
 
   <div id="box-mod" class="sezione">
