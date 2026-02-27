@@ -14,12 +14,10 @@
     .cubo.attivo { background: #0084ff !important; color: white !important; }
     .switch-link { float: right; font-size: 13px; color: #0084ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
     .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; cursor: pointer; }
-    #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
-    
-    /* Nuovi stili per Risultati Ordinati */
-    .res-riga { display: grid; grid-template-columns: 1fr 1fr 1fr 80px; gap: 5px; padding: 12px; border-bottom: 1px solid #eee; align-items: center; font-size: 13px; }
+    .res-riga { display: grid; grid-template-columns: 1fr 1.2fr 1fr 70px; gap: 5px; padding: 12px; border-bottom: 1px solid #eee; align-items: center; font-size: 13px; }
     .res-header { font-weight: bold; background: #f8f9fa; color: #606770; text-transform: uppercase; font-size: 11px; }
-    .qta-badge { background: #e7f3ff; color: #0084ff; padding: 5px 8px; border-radius: 6px; font-weight: bold; text-align: center; }
+    .qta-badge { background: #e7f3ff; color: #0084ff; padding: 5px; border-radius: 6px; font-weight: bold; text-align: center; }
+    #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
   </style>
 </head>
 <body>
@@ -54,29 +52,14 @@
     <div id="lista-temp"></div>
     <button id="btn-salva" class="btn-main btn-carico" style="display:none; margin-top:20px" onclick="salva()">💾 SALVA TUTTO</button>
   </div>
-  <div id="box-cat" class="sezione">
-    <button onclick="mostra('box-home')">⬅️ Home</button>
-    <h2>📦 Categorie</h2><div id="list-cat"></div>
-  </div>
-  <div id="box-art" class="sezione">
-    <button onclick="mostra('box-cat')">⬅️ Categorie</button>
-    <h2 id="tit-cat-inv"></h2><div id="list-art"></div>
-  </div>
-  <div id="box-dash" class="sezione">
-    <button onclick="mostra('box-art')">⬅️ Articoli</button>
-    <h2 id="tit-dash"></h2>
-    <label>Marche</label><div id="f-m" class="griglia"></div>
-    <label>Colori</label><div id="f-c" class="griglia"></div>
-    <label>Taglie</label><div id="f-t" class="griglia"></div>
-    <button class="btn-main" style="background:#28a745; margin-top:20px" onclick="cerca()">🔍 VEDI GIACENZE</button>
-  </div>
-  <div id="box-res" class="sezione" style="padding: 10px;">
+  <div id="box-cat" class="sezione"><button onclick="mostra('box-home')">⬅️ Home</button><h2>📦 Categorie</h2><div id="list-cat"></div></div>
+  <div id="box-art" class="sezione"><button onclick="mostra('box-cat')">⬅️ Categorie</button><h2 id="tit-cat-inv"></h2><div id="list-art"></div></div>
+  <div id="box-dash" class="sezione"><button onclick="mostra('box-art')">⬅️ Articoli</button><h2 id="tit-dash"></h2><label>Marche</label><div id="f-m" class="griglia"></div><label>Colori</label><div id="f-c" class="griglia"></div><label>Taglie</label><div id="f-t" class="griglia"></div><button class="btn-main" style="background:#28a745; margin-top:20px" onclick="cerca()">🔍 VEDI GIACENZE</button></div>
+  <div id="box-res" class="sezione">
     <button onclick="mostra('box-dash')">⬅️ Filtri</button>
-    <h3 id="tit-res-art" style="margin: 15px 0 10px 0; font-size: 16px;"></h3>
+    <h3 id="tit-res-art" style="margin:15px 0 10px 0; font-size:16px;"></h3>
     <div style="background: white; border: 1px solid #ddd; border-radius: 10px; overflow: hidden;">
-      <div class="res-riga res-header">
-        <span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span>
-      </div>
+      <div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>
       <div id="list-res"></div>
     </div>
   </div>
@@ -93,7 +76,7 @@
     function toggleNuovaCat() { isCatNuova = !isCatNuova; document.getElementById("mod-cat-es").style.display = isCatNuova ? "none" : "block"; document.getElementById("mod-cat-nuova").style.display = isCatNuova ? "block" : "none"; }
     function toggleNuovoArt() { isArtNuovo = !isArtNuovo; document.getElementById("mod-art-es").style.display = isArtNuovo ? "none" : "block"; document.getElementById("mod-art-nuovo").style.display = isArtNuovo ? "block" : "none"; }
     function apriMod(t) { m_tipo = t; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; document.getElementById("area-forn").style.display = t === "Carico" ? "block" : "none"; document.getElementById("area-clie").style.display = t === "Scarico" ? "block" : "none"; disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true); }
-    function disegna(lista, id, campo, single) { var cont = document.getElementById(id); cont.innerHTML = ""; lista.forEach(v => { var b = document.createElement("button"); b.className = "cubo"; b.innerText = v; b.onclick = function() { if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); this.classList.toggle('attivo'); m_sel[campo] = this.classList.contains('attivo') ? v : ""; }; cont.appendChild(b); }); }
+    function disegna(lista, id, campo, single) { var cont = document.getElementById(id); cont.innerHTML = ""; (lista || []).forEach(v => { var b = document.createElement("button"); b.className = "cubo"; b.innerText = v; b.onclick = function() { if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); this.classList.toggle('attivo'); m_sel[campo] = this.classList.contains('attivo') ? v : ""; }; cont.appendChild(b); }); }
     function aggiungi() { var art = isArtNuovo ? document.getElementById("mod-art-nuovo").value : document.getElementById("mod-art-es").value; var cat = isCatNuova ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value; var qta = document.getElementById("inp-qta").value; if(!art || !qta) return alert("Dati mancanti!"); buffer.push({tipo: m_tipo, articolo: art, cat: cat, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, isNuovo: isArtNuovo, isCatNuova: isCatNuova, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value}); var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.marca} ${m.colore})</div>`); document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block"; }
     function salva() { google.script.run.withSuccessHandler(function() { alert("Salvato!"); location.reload(); }).registraMovimentiBatch(buffer); }
     function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; document.getElementById('list-art').innerHTML = "⏳ Calcolo..."; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}')"><span><b>${n}</b></span><span style="color:#0084ff; font-weight:bold">${res[n]} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
@@ -103,25 +86,18 @@
       var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); 
       var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText); 
       var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); 
-      mostra('box-res'); 
-      document.getElementById('tit-res-art').innerText = art_cerca;
+      mostra('box-res'); document.getElementById('tit-res-art').innerText = art_cerca;
       document.getElementById('list-res').innerHTML = "<div style='padding:20px'>⏳ Caricamento...</div>"; 
       google.script.run.withSuccessHandler(function(inv) { 
         var h = ""; 
-        var chiavi = Object.keys(inv).sort(); // Ordiniamo alfabeticamente per Marca
+        var chiavi = Object.keys(inv).sort();
         chiavi.forEach(k => { 
           var parti = k.split(" | ");
-          h += `<div class="res-riga">
-                  <span>${parti[0] || "-"}</span>
-                  <span>${parti[1] || "-"}</span>
-                  <span>${parti[2] || "-"}</span>
-                  <div class="qta-badge">${inv[k].qta}</div>
-                </div>`; 
+          h += `<div class="res-riga"><span>${parti[0] || "-"}</span><span>${parti[1] || "-"}</span><span>${parti[2] || "-"}</span><div class="qta-badge">${inv[k].qta}</div></div>`; 
         }); 
         document.getElementById('list-res').innerHTML = h || "<div style='padding:20px'>Nessun dato trovato</div>"; 
       }).getRisultatiRicerca(art_cerca, m, t, c); 
     }
-    
     function mostra(id) { document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none'); document.getElementById(id).style.display='block'; }
   </script>
 </body>
