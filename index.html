@@ -1,265 +1,125 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
     .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #606770; text-transform: uppercase; }
-    select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-    .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+    .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 40px; }
     .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
     .cubo.attivo { background: #0084ff !important; color: white !important; }
-    .btn-aggiungi { background: #0084ff; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
-    .btn-salva-tutto { background: #28a745; color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 20px; cursor: pointer; display: none; }
-    .riga-lista { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #0084ff; font-size: 14px; }
-    .switch-link { float: right; font-size: 13px; color: #0084ff; font-weight: bold; cursor: pointer; text-transform: none; text-decoration: underline; }
-    .thumb { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
-    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; }
+    .riga-lista { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 5px; border-left: 4px solid #0084ff; font-size: 14px; }
     #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
-    #box-login h1 { margin-top: 0; color: #1c1e21; }
-    #box-login input { text-align: center; font-size: 18px; margin-bottom: 15px; }
-    #box-login button { background: #0084ff; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
 
   <div id="box-login" style="display:none">
     <h1>🔒 Accesso Pro</h1>
-    <p style="color:#666; font-size:14px">Inserisci Nome e Password per farti riconoscere dal sistema.</p>
-    <input type="text" id="inp-nome" placeholder="Il tuo Nome (es. Marco)">
-    <input type="password" id="inp-pass" placeholder="••••••••">
-    <button id="btn-login" onclick="eseguiLogin()">ENTRA NEL MAGAZZINO</button>
+    <input type="password" id="inp-pass" placeholder="Password">
+    <button class="btn-main" style="background:#0084ff; margin-top:10px" onclick="eseguiLogin()">ENTRA</button>
   </div>
 
   <div id="box-home" style="display:none">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-      <h1 style="margin:0">📦 App Pro</h1>
-      <button onclick="esci()" style="font-size:12px; padding:8px 15px; background:#dc3545; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer">Esci 🚪</button>
-    </div>
-    <div id="benvenuto-msg" style="text-align:left; font-weight:bold; color:#0084ff; margin-bottom:15px;"></div>
-    
+    <h1 id="benvenuto-msg">📦 Caricamento...</h1>
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
     <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
-    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
+    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 INVENTARIO</button>
+    <button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:none; cursor:pointer">Esci 🚪</button>
   </div>
 
   <div id="box-mod" class="sezione">
-    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Home</button>
-    <h2 id="tit-mod" style="text-align:center"></h2>
-    
-    <label>Articolo <span onclick="toggleNuovoArt()" class="switch-link" id="link-art">➕ Nuovo?</span></label>
-    <select id="mod-art-es"></select>
-    <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Es: Penna C01">
-    
-    <div id="area-cat" style="display:none; background:#f0f7ff; padding:15px; border-radius:10px; margin-top:10px; border: 1px dashed #0084ff;">
-      <label style="margin-top:0">Categoria <span onclick="toggleNuovaCat()" class="switch-link" id="link-cat">➕ Nuova?</span></label>
-      <select id="mod-cat-es"></select>
-      <input type="text" id="mod-cat-nuova" style="display:none" placeholder="Scrivi nuova categoria...">
-    </div>
-    
-    <label>📸 Foto (Opzionale)</label>
-    <input type="file" id="inp-foto" accept="image/*">
-
+    <button onclick="mostra('box-home')">⬅️ Home</button>
+    <h2 id="tit-mod"></h2>
+    <label>Articolo</label><select id="mod-art-es"></select>
+    <label>Quantità</label><input type="number" id="inp-qta">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
     <label>Colore</label><div id="cubi-c" class="griglia"></div>
     <label>Taglia</label><div id="cubi-t" class="griglia"></div>
-    <label>Quantità</label><input type="number" id="inp-qta" placeholder="Es. 200">
-
-    <div id="div-forn"><label>Fornitore</label><select id="sel-forn"></select></div>
-    <div id="div-clie" style="display:none"><label>Cliente</label><select id="sel-clie"></select></div>
-
-    <button class="btn-aggiungi" onclick="aggiungiAllaLista()">➕ AGGIUNGI ALLA LISTA</button>
-
-    <div id="riepilogo-carico" style="margin-top:20px">
-      <h4 style="margin-bottom:5px">📋 Lista da registrare:</h4>
-      <div id="lista-temporanea"></div>
-    </div>
-
-    <button id="btn-salva-finale" class="btn-salva-tutto" onclick="preparaSalvataggioBatch()">💾 SALVA TUTTO NEL FOGLIO</button>
+    <button class="btn-main" style="background:#0084ff; margin-top:20px" onclick="aggiungi()">➕ AGGIUNGI ALLA LISTA</button>
+    <div id="lista-temporanea"></div>
+    <button id="btn-salva" class="btn-main" style="background:#28a745; display:none" onclick="salvaTutto()">💾 SALVA TUTTO</button>
   </div>
 
   <div id="box-cat" class="sezione">
-    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Home</button>
+    <button onclick="mostra('box-home')">⬅️ Home</button>
     <h2>📦 Categorie</h2><div id="list-cat"></div>
-  </div>
-  <div id="box-art" class="sezione">
-    <button onclick="mostra('box-cat')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Categorie</button>
-    <h2 id="tit-cat" style="text-align:center"></h2><div id="list-art"></div>
-  </div>
-  <div id="box-dash" class="sezione">
-    <button onclick="mostra('box-art')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Articoli</button>
-    <h2 id="tit-dash" style="text-align:center"></h2>
-    <label>Marche</label><div id="f-m" class="griglia"></div>
-    <label>Taglie</label><div id="f-t" class="griglia"></div>
-    <label>Colori</label><div id="f-c" class="griglia"></div>
-    <button class="btn-main" style="background:#28a745; margin-top:20px" onclick="cerca()">🔍 VEDI GIACENZE</button>
-  </div>
-  <div id="box-res" class="sezione">
-    <button onclick="mostra('box-dash')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Filtri</button>
-    <div id="list-res"></div>
   </div>
 
   <script>
-    // --- PONTE DI COLLEGAMENTO GITHUB -> GOOGLE ---
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
 
+    // PONTE GITHUB-GOOGLE
     const google = {
-      script: {
-        run: {
-          withSuccessHandler: function(callback) {
-            return new Proxy({}, {
-              get(target, functionName) {
-                return async function(...args) {
-                  try {
-                    const resp = await fetch(SCRIPT_URL, {
-                      method: "POST",
-                      body: JSON.stringify({ azione: functionName, args: args })
-                    });
-                    const data = await resp.json();
-                    if (callback) callback(data);
-                  } catch (e) {
-                    console.error("Errore chiamata GAS:", e);
-                    alert("Errore di connessione al database.");
-                  }
-                };
-              }
-            });
-          }
-        }
-      }
+      script: { run: { withSuccessHandler: function(cb) {
+        return new Proxy({}, { get(t, fn) { return async function(...args) {
+          const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ azione: fn, args: args }) });
+          const d = await r.json(); cb(d);
+        }}});
+      }}}
     };
 
-    // --- IL TUO CODICE ORIGINALE (INALTERATO) ---
-    var db = {}, m_tipo = "", m_sel = { m:"", c:"", t:"" }, bufferMovimenti = [];
-    var isArtNuovo = false, isCatNuova = false, art_cerca = "";
+    var db = {}, m_tipo = "", m_sel = {m:"", c:"", t:""}, buffer = [];
 
     window.onload = function() {
-      var utenteSalvato = localStorage.getItem("magazzino_utente");
-      if (utenteSalvato) {
-        document.getElementById("box-login").style.display = "none";
-        document.getElementById("box-home").style.display = "block";
-        document.getElementById("benvenuto-msg").innerText = "👤 Operatore: " + utenteSalvato;
-        avviaApp();
-      } else {
-        document.getElementById("box-login").style.display = "block";
-        document.getElementById("box-home").style.display = "none";
-      }
+      if(localStorage.getItem("p")) { mostra('box-home'); avvia(); } 
+      else { mostra('box-login'); }
     };
 
     function eseguiLogin() {
-      var btn = document.getElementById("btn-login");
-      var nome = document.getElementById("inp-nome").value.trim();
-      var pass = document.getElementById("inp-pass").value;
-      if (!nome || !pass) { alert("Inserisci il tuo nome e la password!"); return; }
-      btn.innerText = "⏳ Controllo e Registrazione...";
-      google.script.run.withSuccessHandler(function(accessoConsentito) {
-        if (accessoConsentito) {
-          localStorage.setItem("magazzino_utente", nome);
-          location.reload();
-        } else {
-          alert("❌ Password errata!");
-          btn.innerText = "ENTRA NEL MAGAZZINO";
-          document.getElementById("inp-pass").value = "";
-        }
-      }).verificaPassword(nome, pass);
+      var p = document.getElementById("inp-pass").value;
+      google.script.run.withSuccessHandler(function(ok) {
+        if(ok) { localStorage.setItem("p", p); location.reload(); } else { alert("Pass errata"); }
+      }).verificaPassword("Operatore", p);
     }
 
-    function esci() {
-      var utente = localStorage.getItem("magazzino_utente");
-      if (!utente) return;
-      google.script.run.withSuccessHandler(function() {
-        localStorage.removeItem("magazzino_utente");
-        location.reload();
-      }).registraUscita(utente);
-    }
-
-    function avviaApp() {
-      google.script.run.withSuccessHandler(function(res) { 
-        db = res; init(); 
+    function avvia() {
+      google.script.run.withSuccessHandler(function(res) {
+        if(!res || !res.marche) { alert("Errore caricamento dati!"); return; }
+        db = res; 
+        document.getElementById("benvenuto-msg").innerText = "📦 Magazzino Pranio";
+        var s = document.getElementById("mod-art-es"); s.innerHTML = "";
+        db.articoli.forEach(a => s.add(new Option(a.nome, a.nome)));
+        var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="alert(c)">${c}</button>`);
+        document.getElementById("list-cat").innerHTML = h;
       }).getDatiIniziali();
     }
 
-    function mostra(id) {
-      document.querySelectorAll('.sezione, #box-home').forEach(s => s.style.display='none');
-      document.getElementById(id).style.display='block';
-    }
-
-    function init() {
-      var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.forEach(a => sA.add(new Option(a.nome, a.nome)));
-      var sC = document.getElementById("mod-cat-es"); sC.innerHTML = ""; db.categorie.forEach(c => sC.add(new Option(c, c)));
-      var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f)));
-      var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c)));
-      var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`);
-      document.getElementById('list-cat').innerHTML = h;
-    }
-
-    function toggleNuovoArt() { isArtNuovo = !isArtNuovo; document.getElementById("mod-art-es").style.display = isArtNuovo ? "none" : "block"; document.getElementById("mod-art-nuovo").style.display = isArtNuovo ? "block" : "none"; document.getElementById("area-cat").style.display = isArtNuovo ? "block" : "none"; document.getElementById("link-art").innerText = isArtNuovo ? "🔙 Usa Esistente" : "➕ Nuovo?"; }
-    function toggleNuovaCat() { isCatNuova = !isCatNuova; document.getElementById("mod-cat-es").style.display = isCatNuova ? "none" : "block"; document.getElementById("mod-cat-nuova").style.display = isCatNuova ? "block" : "none"; document.getElementById("link-cat").innerText = isCatNuova ? "🔙 Usa Esistente" : "➕ Nuova?"; }
-
     function apriMod(t) {
-      m_tipo = t; bufferMovimenti = []; m_sel = {m:"", c:"", t:""}; isArtNuovo = false; isCatNuova = false;
-      mostra('box-mod');
-      document.getElementById("tit-mod").innerText = t === "Carico" ? "📥 Carico Multiplo" : "📤 Scarico Multiplo";
-      document.getElementById("mod-art-es").style.display = "block"; document.getElementById("mod-art-nuovo").style.display = "none"; document.getElementById("area-cat").style.display = "none"; document.getElementById("link-art").innerText = "➕ Nuovo?";
-      document.getElementById("mod-cat-es").style.display = "block"; document.getElementById("mod-cat-nuova").style.display = "none"; document.getElementById("link-cat").innerText = "➕ Nuova?";
-      document.getElementById("div-forn").style.display = t === "Carico" ? "block" : "none"; document.getElementById("div-clie").style.display = t === "Scarico" ? "block" : "none";
-      document.getElementById("lista-temporanea").innerHTML = ""; document.getElementById("btn-salva-finale").style.display = "none"; document.getElementById("inp-foto").value = "";
-      disegnaCubi(db.marche, 'cubi-m', 'm', true); disegnaCubi(db.colori, 'cubi-c', 'c', true); disegnaCubi(db.taglie, 'cubi-t', 't', true);
+      m_tipo = t; mostra('box-mod'); document.getElementById("tit-mod").innerText = t;
+      disegna(db.marche, 'cubi-m', 'm'); disegna(db.colori, 'cubi-c', 'c'); disegna(db.taglie, 'cubi-t', 't');
     }
 
-    function disegnaCubi(lista, id, campo, single) {
+    function disegna(lista, id, campo) {
       var cont = document.getElementById(id); cont.innerHTML = "";
-      lista.forEach(v => {
+      (lista || []).forEach(v => {
         var b = document.createElement("button"); b.className = "cubo"; b.innerText = v;
-        b.onclick = function() { if(single) { document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); m_sel[campo] = v; } this.classList.toggle('attivo'); };
+        b.onclick = function() { 
+          document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo'));
+          this.classList.add('attivo'); m_sel[campo] = v;
+        };
         cont.appendChild(b);
       });
     }
 
-    function aggiungiAllaLista() {
-      var art = isArtNuovo ? document.getElementById("mod-art-nuovo").value : document.getElementById("mod-art-es").value;
-      var cat = isArtNuovo ? (isCatNuova ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value) : null;
-      var qta = document.getElementById("inp-qta").value;
-      if(!art || !qta) { alert("Attenzione: Articolo e Quantità sono obbligatori!"); return; }
-      if(isArtNuovo && !cat) { alert("Attenzione: Scegli o scrivi una Categoria per il nuovo articolo!"); return; }
-      var mov = { tipo: m_tipo, articolo: art, marca: m_sel.m, qta: qta, colore: m_sel.c, taglia: m_sel.t, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value, isNuovo: isArtNuovo, isCatNuova: isCatNuova, cat: cat, fotoUrl: "" };
-      bufferMovimenti.push(mov); aggiornaInterfacciaLista();
-      document.getElementById("inp-qta").value = ""; document.querySelectorAll('#cubi-c .cubo, #cubi-t .cubo').forEach(x => x.classList.remove('attivo')); m_sel.c = ""; m_sel.t = "";
+    function aggiungi() {
+      buffer.push({tipo:m_tipo, articolo:document.getElementById("mod-art-es").value, qta:document.getElementById("inp-qta").value, marca:m_sel.m, colore:m_sel.c, taglia:m_sel.t});
+      var h = ""; buffer.forEach(m => h += `<div class="riga-lista">${m.qta} pz - ${m.articolo} (${m.marca})</div>`);
+      document.getElementById("lista-temporanea").innerHTML = h;
+      document.getElementById("btn-salva").style.display = "block";
     }
 
-    function aggiornaInterfacciaLista() {
-      var cont = document.getElementById("lista-temporanea"); var h = "";
-      bufferMovimenti.forEach((m, i) => { h += `<div class="riga-lista"><span><b>${m.qta} pz</b> - ${m.colore||"Nessun Colore"} / ${m.taglia||"Nessuna Taglia"}</span><button onclick="bufferMovimenti.splice(${i},1); aggiornaInterfacciaLista();" style="border:none; color:red; background:none; font-weight:bold; font-size:16px; cursor:pointer">X</button></div>`; });
-      cont.innerHTML = h; document.getElementById("btn-salva-finale").style.display = bufferMovimenti.length > 0 ? "block" : "none";
+    function salvaTutto() {
+      google.script.run.withSuccessHandler(function() { alert("Salvato!"); location.reload(); }).registraMovimentiBatch(buffer);
     }
 
-    function preparaSalvataggioBatch() {
-      var fileInput = document.getElementById('inp-foto'); var btn = document.getElementById("btn-salva-finale"); btn.innerText = "⏳ SALVATAGGIO IN CORSO..."; btn.disabled = true;
-      if (fileInput.files.length > 0) {
-        var reader = new FileReader();
-        reader.onload = function(e) { google.script.run.withSuccessHandler(function(url) { bufferMovimenti.forEach(m => m.fotoUrl = url); eseguiSalvataggioFinale(); }).salvaImmagine(e.target.result, fileInput.files[0].name); };
-        reader.readAsDataURL(fileInput.files[0]);
-      } else { eseguiSalvataggioFinale(); }
-    }
-
-    function eseguiSalvataggioFinale() {
-      google.script.run.withSuccessHandler(function() { alert("Tutti i movimenti sono stati registrati con successo!"); location.reload(); }).registraMovimentiBatch(bufferMovimenti);
-    }
-
-    function apriArt(c) { mostra('box-art'); document.getElementById('tit-cat').innerText = c; var h = ""; db.articoli.filter(a => a.cat === c).forEach(a => h += `<div class="card" onclick="apriDash('${a.nome}')"><b>${a.nome}</b><span>➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }
-    function apriDash(n) { art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; disegnaCubi(db.marche, 'f-m', 'm', false); disegnaCubi(db.taglie, 'f-t', 't', false); disegnaCubi(db.colori, 'f-c', 'c', false); }
-    function cerca() {
-      var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText);
-      mostra('box-res'); document.getElementById('list-res').innerHTML = "⏳ Ricerca...";
-      google.script.run.withSuccessHandler(function(inv){
-        var h = ""; Object.keys(inv).forEach(k => { var imgTag = inv[k].foto ? `<img src="${inv[k].foto}" class="thumb">` : "🖼️"; h += `<div class="card" onclick="if('${inv[k].foto}') window.open('${inv[k].foto}')">${imgTag}<div style="flex-grow:1; margin-left:10px"><b>${k}</b></div><b style="color:#28a745">${inv[k].qta} pz</b></div>`; });
-        document.getElementById('list-res').innerHTML = h || "Nessun dato";
-      }).getRisultatiRicerca(art_cerca, m, t, c);
+    function mostra(id) {
+      document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none');
+      document.getElementById(id).style.display='block';
     }
   </script>
 </body>
