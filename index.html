@@ -9,13 +9,13 @@
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #606770; text-transform: uppercase; }
     select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
-    .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 40px; }
+    .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
     .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
     .cubo.attivo { background: #0084ff !important; color: white !important; }
     .btn-aggiungi { background: #0084ff; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     .btn-salva-tutto { background: #28a745; color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 20px; cursor: pointer; display: none; }
-    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; cursor: pointer; }
     #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
+    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; }
   </style>
 </head>
 <body>
@@ -27,29 +27,48 @@
   </div>
 
   <div id="box-home" style="display:none">
-    <h1 style="margin-bottom:5px">📦 Magazzino Pranio</h1>
+    <h1>📦 Magazzino Pranio</h1>
+    <div id="benvenuto-msg" style="color:#0084ff; margin-bottom:15px; font-weight:bold"></div>
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
     <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
     <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
-    <button onclick="localStorage.clear(); location.reload();" style="margin-top:10px; color:red; border:none; background:none; cursor:pointer">Esci 🚪</button>
   </div>
 
   <div id="box-mod" class="sezione">
-    <button onclick="mostra('box-home')">⬅️ Indietro</button>
+    <button onclick="mostra('box-home')">⬅️ Home</button>
     <h2 id="tit-mod"></h2>
     <label>Articolo</label><select id="mod-art-es"></select>
     <label>Quantità</label><input type="number" id="inp-qta" placeholder="0">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
     <label>Colore</label><div id="cubi-c" class="griglia"></div>
     <label>Taglia</label><div id="cubi-t" class="griglia"></div>
-    <button class="btn-aggiungi" onclick="aggiungi()">➕ AGGIUNGI ALLA LISTA</button>
+    <button class="btn-aggiungi" onclick="aggiungi()">➕ AGGIUNGI</button>
     <div id="lista-temp" style="margin-top:10px"></div>
-    <button id="btn-salva" class="btn-salva-tutto" onclick="salvaTutto()">💾 SALVA NEL FOGLIO</button>
+    <button id="btn-salva" class="btn-salva-tutto" onclick="salva()">💾 SALVA TUTTO</button>
   </div>
 
   <div id="box-cat" class="sezione">
-    <button onclick="mostra('box-home')">⬅️ Indietro</button>
+    <button onclick="mostra('box-home')">⬅️ Home</button>
     <h2>📦 Categorie</h2><div id="list-cat"></div>
+  </div>
+
+  <div id="box-art" class="sezione">
+    <button onclick="mostra('box-cat')">⬅️ Categorie</button>
+    <h2 id="tit-cat"></h2><div id="list-art"></div>
+  </div>
+
+  <div id="box-dash" class="sezione">
+    <button onclick="mostra('box-art')">⬅️ Articoli</button>
+    <h2 id="tit-dash"></h2>
+    <label>Marche</label><div id="f-m" class="griglia"></div>
+    <label>Colori</label><div id="f-c" class="griglia"></div>
+    <label>Taglie</label><div id="f-t" class="griglia"></div>
+    <button class="btn-main" style="background:#28a745; margin-top:20px" onclick="cerca()">🔍 VEDI GIACENZE</button>
+  </div>
+
+  <div id="box-res" class="sezione">
+    <button onclick="mostra('box-dash')">⬅️ Filtri</button>
+    <div id="list-res"></div>
   </div>
 
   <script>
@@ -64,17 +83,16 @@
       }}}
     };
 
-    var db = {}, m_tipo = "", m_sel = {m:"", c:"", t:""}, buffer = [];
+    var db = {}, m_tipo = "", m_sel = {m:"", c:"", t:""}, buffer = [], art_cerca = "";
 
     window.onload = function() {
-      if(localStorage.getItem("log_ok")) { mostra('box-home'); avvia(); } 
-      else { mostra('box-login'); }
+      if(localStorage.getItem("ok")) { mostra('box-home'); avvia(); } else mostra('box-login');
     };
 
     function eseguiLogin() {
       var p = document.getElementById("inp-pass").value;
       google.script.run.withSuccessHandler(function(ok) {
-        if(ok) { localStorage.setItem("log_ok", "1"); location.reload(); } else { alert("Pass errata!"); }
+        if(ok) { localStorage.setItem("ok", "1"); location.reload(); } else alert("Errore");
       }).verificaPassword("Operatore", p);
     }
 
@@ -83,43 +101,64 @@
         db = res;
         var s = document.getElementById("mod-art-es"); s.innerHTML = "";
         db.articoli.forEach(a => s.add(new Option(a.nome, a.nome)));
-        var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="alert(c)">📦 ${c}</button>`);
+        var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`);
         document.getElementById("list-cat").innerHTML = h;
       }).getDatiIniziali();
     }
 
     function apriMod(t) {
       m_tipo = t; mostra('box-mod'); document.getElementById("tit-mod").innerText = t;
-      disegna(db.marche, 'cubi-m', 'm'); disegna(db.colori, 'cubi-c', 'c'); disegna(db.taglie, 'cubi-t', 't');
+      m_sel = {m:"", c:"", t:""}; buffer = []; document.getElementById("lista-temp").innerHTML = "";
+      disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true);
     }
 
-    function disegna(lista, id, campo) {
+    function disegna(lista, id, campo, single) {
       var cont = document.getElementById(id); cont.innerHTML = "";
       (lista || []).forEach(v => {
         var b = document.createElement("button"); b.className = "cubo"; b.innerText = v;
-        b.onclick = function() { 
-          document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo'));
-          this.classList.add('attivo'); m_sel[campo] = v;
+        b.onclick = function() {
+          if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo'));
+          this.classList.toggle('attivo'); m_sel[campo] = this.classList.contains('attivo') ? v : "";
         };
         cont.appendChild(b);
       });
     }
 
     function aggiungi() {
-      buffer.push({tipo: m_tipo, articolo: document.getElementById("mod-art-es").value, qta: document.getElementById("inp-qta").value, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t});
-      var h = ""; buffer.forEach(m => h += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-top:5px; border-left:4px solid #0084ff">${m.qta} pz - ${m.articolo} (${m.marca})</div>`);
-      document.getElementById("lista-temp").innerHTML = h;
-      document.getElementById("btn-salva").style.display = "block";
+      var qta = document.getElementById("inp-qta").value;
+      if(!qta) return alert("Quantità!");
+      buffer.push({tipo: m_tipo, articolo: document.getElementById("mod-art-es").value, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t});
+      var h = ""; buffer.forEach(m => h += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-top:5px; border-left:4px solid #0084ff">${m.qta} pz - ${m.articolo} (${m.marca} ${m.colore})</div>`);
+      document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block";
     }
 
-    function salvaTutto() {
+    function salva() {
       google.script.run.withSuccessHandler(function() { alert("Salvato!"); location.reload(); }).registraMovimentiBatch(buffer);
     }
 
-    function mostra(id) {
-      document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none');
-      document.getElementById(id).style.display='block';
+    function apriArt(c) {
+      mostra('box-art'); document.getElementById('tit-cat').innerText = c;
+      var h = ""; db.articoli.filter(a => a.cat === c).forEach(a => h += `<div class="card" onclick="apriDash('${a.nome}')">${a.nome} ➡️</div>`);
+      document.getElementById('list-art').innerHTML = h;
     }
+
+    function apriDash(n) {
+      art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n;
+      disegna(db.marche, 'f-m', 'm', false); disegna(db.colori, 'f-c', 'c', false); disegna(db.taglie, 'f-t', 't', false);
+    }
+
+    function cerca() {
+      var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText);
+      var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText);
+      var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText);
+      mostra('box-res'); document.getElementById('list-res').innerHTML = "⏳...";
+      google.script.run.withSuccessHandler(function(inv) {
+        var h = ""; Object.keys(inv).forEach(k => h += `<div class="card"><b>${k}</b><b style="color:#28a745">${inv[k].qta} pz</b></div>`);
+        document.getElementById('list-res').innerHTML = h || "Vuoto";
+      }).getRisultatiRicerca(art_cerca, m, t, c);
+    }
+
+    function mostra(id) { document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none'); document.getElementById(id).style.display='block'; }
   </script>
 </body>
 </html>
