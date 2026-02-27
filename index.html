@@ -46,15 +46,20 @@
   <div id="box-mod" class="sezione">
     <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Home</button>
     <h2 id="tit-mod" style="text-align:center"></h2>
+    
     <label>Articolo <span onclick="toggleNuovoArt()" style="float:right; color:#0084ff; cursor:pointer">➕ Nuovo?</span></label>
     <select id="mod-art-es"></select>
     <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Es: Penna C01">
-    <label>Quantità</label><input type="number" id="inp-qta">
-    <div id="cubi-m" class="griglia"></div>
-    <div id="cubi-c" class="griglia"></div>
-    <div id="cubi-t" class="griglia"></div>
+    
+    <label>Quantità</label>
+    <input type="number" id="inp-qta" placeholder="Es. 10">
+
+    <label>Marca</label><div id="cubi-m" class="griglia"></div>
+    <label>Colore</label><div id="cubi-c" class="griglia"></div>
+    <label>Taglia</label><div id="cubi-t" class="griglia"></div>
+
     <button class="btn-aggiungi" onclick="aggiungiAllaLista()">➕ AGGIUNGI ALLA LISTA</button>
-    <div id="lista-temporanea"></div>
+    <div id="lista-temporanea" style="margin-top:15px"></div>
     <button id="btn-salva-finale" class="btn-salva-tutto" onclick="preparaSalvataggioBatch()">💾 SALVA TUTTO NEL FOGLIO</button>
   </div>
 
@@ -105,13 +110,58 @@
     }
 
     function init() {
+      var sA = document.getElementById("mod-art-es"); sA.innerHTML = "";
+      (db.articoli || []).forEach(a => sA.add(new Option(a.nome, a.nome)));
+      
       var h = ""; 
-      (db.categorie || []).forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd">${c}</button>`);
+      (db.categorie || []).forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd" onclick="apriArt('${c}')">📦 ${c}</button>`);
       document.getElementById('list-cat').innerHTML = h;
-      var sA = document.getElementById("mod-art-es"); (db.articoli || []).forEach(a => sA.add(new Option(a.nome, a.nome)));
     }
 
-    function apriMod(t) { m_tipo = t; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; }
+    function apriMod(t) {
+      m_tipo = t; 
+      mostra('box-mod'); 
+      document.getElementById("tit-mod").innerText = t;
+      m_sel = {m:"", c:"", t:""};
+      disegnaCubi(db.marche || [], 'cubi-m', 'm');
+      disegnaCubi(db.colori || [], 'cubi-c', 'c');
+      disegnaCubi(db.taglie || [], 'cubi-t', 't');
+    }
+
+    function disegnaCubi(lista, id, campo) {
+      var cont = document.getElementById(id); cont.innerHTML = "";
+      lista.forEach(v => {
+        var b = document.createElement("button"); b.className = "cubo"; b.innerText = v;
+        b.onclick = function() { 
+          document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo'));
+          this.classList.add('attivo'); 
+          m_sel[campo] = v; 
+        };
+        cont.appendChild(b);
+      });
+    }
+
+    function aggiungiAllaLista() {
+      var art = document.getElementById("mod-art-es").value;
+      var qta = document.getElementById("inp-qta").value;
+      if(!qta) { alert("Inserisci la quantità!"); return; }
+      bufferMovimenti.push({tipo: m_tipo, articolo: art, marca: m_sel.m, qta: qta, colore: m_sel.c, taglia: m_sel.t});
+      aggiornaLista();
+    }
+
+    function aggiornaLista() {
+      var h = "";
+      bufferMovimenti.forEach((m, i) => h += `<div class="riga-lista"><span>${m.qta} pz - ${m.articolo} (${m.marca} ${m.colore} ${m.taglia})</span></div>`);
+      document.getElementById("lista-temporanea").innerHTML = h;
+      document.getElementById("btn-salva-finale").style.display = bufferMovimenti.length > 0 ? "block" : "none";
+    }
+
+    async function preparaSalvataggioBatch() {
+      document.getElementById("btn-salva-finale").innerText = "⏳ SALVATAGGIO...";
+      await callGAS({ azione: "registraMovimentiBatch", movimenti: bufferMovimenti });
+      alert("Salvato!"); location.reload();
+    }
+
     function esci() { localStorage.removeItem("magazzino_utente"); location.reload(); }
   </script>
 </body>
