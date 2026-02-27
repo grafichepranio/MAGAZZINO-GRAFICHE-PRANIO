@@ -10,28 +10,109 @@
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
     .btn-store { background: #1c1e21; margin-top: 20px; }
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+    label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #606770; text-transform: uppercase; }
+    select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+    .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 40px; }
     .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
     .cubo.attivo { background: #0084ff !important; color: white !important; }
+    .btn-aggiungi { background: #0084ff; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
     .btn-salva-tutto { background: #28a745; color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 20px; cursor: pointer; display: none; }
+    .riga-lista { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 5px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #0084ff; font-size: 14px; }
+    #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
+    #box-login button { background: #0084ff; color: white; width: 100%; padding: 15px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
+
   <div id="box-login" style="display:none">
     <h1>🔒 Accesso Pro</h1>
     <input type="text" id="inp-nome" placeholder="Il tuo Nome">
     <input type="password" id="inp-pass" placeholder="••••••••">
     <button id="btn-login" onclick="eseguiLogin()">ENTRA NEL MAGAZZINO</button>
   </div>
+
   <div id="box-home" style="display:none">
-    <h1>📦 App Pro</h1>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+      <h1 style="margin:0">📦 App Pro</h1>
+      <button onclick="esci()" style="font-size:12px; padding:8px 15px; background:#dc3545; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer">Esci 🚪</button>
+    </div>
+    <div id="benvenuto-msg" style="text-align:left; font-weight:bold; color:#0084ff; margin-bottom:15px;"></div>
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
     <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
     <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
     <button class="btn-main btn-store" onclick="window.open('https://gift-idea-7990.myshopify.com/', '_blank')">🛒 VAI ALLO STORE</button>
   </div>
+
+  <div id="box-mod" class="sezione">
+    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Home</button>
+    <h2 id="tit-mod" style="text-align:center"></h2>
+    <label>Articolo <span onclick="toggleNuovoArt()" style="float:right; color:#0084ff; cursor:pointer">➕ Nuovo?</span></label>
+    <select id="mod-art-es"></select>
+    <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Es: Penna C01">
+    <label>Quantità</label><input type="number" id="inp-qta">
+    <div id="cubi-m" class="griglia"></div>
+    <div id="cubi-c" class="griglia"></div>
+    <div id="cubi-t" class="griglia"></div>
+    <button class="btn-aggiungi" onclick="aggiungiAllaLista()">➕ AGGIUNGI ALLA LISTA</button>
+    <div id="lista-temporanea"></div>
+    <button id="btn-salva-finale" class="btn-salva-tutto" onclick="preparaSalvataggioBatch()">💾 SALVA TUTTO NEL FOGLIO</button>
+  </div>
+
+  <div id="box-cat" class="sezione">
+    <button onclick="mostra('box-home')" style="color:#0084ff; background:none; border:none; font-weight:bold; cursor:pointer">⬅️ Home</button>
+    <h2>📦 Categorie</h2><div id="list-cat"></div>
+  </div>
+
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
-    // ... resto del codice ...
+
+    async function callGAS(payload) {
+      const resp = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify(payload) });
+      return await resp.json();
+    }
+
+    var db = {}, m_tipo = "", m_sel = { m:"", c:"", t:"" }, bufferMovimenti = [];
+
+    window.onload = function() {
+      var utenteSalvato = localStorage.getItem("magazzino_utente");
+      if (utenteSalvato) {
+        document.getElementById("box-home").style.display = "block";
+        document.getElementById("benvenuto-msg").innerText = "👤 Operatore: " + utenteSalvato;
+        avviaApp();
+      } else {
+        document.getElementById("box-login").style.display = "block";
+      }
+    };
+
+    async function eseguiLogin() {
+      var nome = document.getElementById("inp-nome").value;
+      var pass = document.getElementById("inp-pass").value;
+      const accesso = await callGAS({ azione: "verificaPassword", nome: nome, pass: pass });
+      if (accesso) {
+        localStorage.setItem("magazzino_utente", nome);
+        location.reload();
+      } else { alert("Password errata!"); }
+    }
+
+    async function avviaApp() {
+      const res = await callGAS({ azione: "getDatiIniziali" });
+      db = res; init();
+    }
+
+    function mostra(id) {
+      document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none');
+      document.getElementById(id).style.display='block';
+    }
+
+    function init() {
+      var h = ""; 
+      (db.categorie || []).forEach(c => h += `<button class="btn-main" style="background:#fff; color:#1c1e21; border:1px solid #ddd">${c}</button>`);
+      document.getElementById('list-cat').innerHTML = h;
+      var sA = document.getElementById("mod-art-es"); (db.articoli || []).forEach(a => sA.add(new Option(a.nome, a.nome)));
+    }
+
+    function apriMod(t) { m_tipo = t; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; }
+    function esci() { localStorage.removeItem("magazzino_utente"); location.reload(); }
   </script>
 </body>
 </html>
