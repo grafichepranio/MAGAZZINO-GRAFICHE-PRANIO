@@ -8,11 +8,13 @@
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 13px; color: #606770; text-transform: uppercase; }
-    input, select { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+    select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
     .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; min-height: 40px; }
     .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
     .cubo.attivo { background: #0084ff !important; color: white !important; }
-    .riga-lista { background: #f8f9fa; padding: 10px; border-radius: 8px; margin-top: 5px; border-left: 4px solid #0084ff; font-size: 14px; }
+    .btn-aggiungi { background: #0084ff; color: white; border: none; padding: 15px; width: 100%; border-radius: 10px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+    .btn-salva-tutto { background: #28a745; color: white; border: none; padding: 20px; width: 100%; border-radius: 12px; font-size: 20px; font-weight: bold; margin-top: 20px; cursor: pointer; display: none; }
+    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; cursor: pointer; }
     #box-login { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-top: 20%; }
   </style>
 </head>
@@ -20,40 +22,39 @@
 
   <div id="box-login" style="display:none">
     <h1>🔒 Accesso Pro</h1>
-    <input type="password" id="inp-pass" placeholder="Password">
-    <button class="btn-main" style="background:#0084ff; margin-top:10px" onclick="eseguiLogin()">ENTRA</button>
+    <input type="password" id="inp-pass" placeholder="••••••••">
+    <button class="btn-main" style="background:#0084ff; margin-top:10px;" onclick="eseguiLogin()">ENTRA</button>
   </div>
 
   <div id="box-home" style="display:none">
-    <h1 id="benvenuto-msg">📦 Caricamento...</h1>
+    <h1 style="margin-bottom:5px">📦 Magazzino Pranio</h1>
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
     <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
-    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 INVENTARIO</button>
-    <button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:none; cursor:pointer">Esci 🚪</button>
+    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
+    <button onclick="localStorage.clear(); location.reload();" style="margin-top:10px; color:red; border:none; background:none; cursor:pointer">Esci 🚪</button>
   </div>
 
   <div id="box-mod" class="sezione">
-    <button onclick="mostra('box-home')">⬅️ Home</button>
+    <button onclick="mostra('box-home')">⬅️ Indietro</button>
     <h2 id="tit-mod"></h2>
     <label>Articolo</label><select id="mod-art-es"></select>
-    <label>Quantità</label><input type="number" id="inp-qta">
+    <label>Quantità</label><input type="number" id="inp-qta" placeholder="0">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
     <label>Colore</label><div id="cubi-c" class="griglia"></div>
     <label>Taglia</label><div id="cubi-t" class="griglia"></div>
-    <button class="btn-main" style="background:#0084ff; margin-top:20px" onclick="aggiungi()">➕ AGGIUNGI ALLA LISTA</button>
-    <div id="lista-temporanea"></div>
-    <button id="btn-salva" class="btn-main" style="background:#28a745; display:none" onclick="salvaTutto()">💾 SALVA TUTTO</button>
+    <button class="btn-aggiungi" onclick="aggiungi()">➕ AGGIUNGI ALLA LISTA</button>
+    <div id="lista-temp" style="margin-top:10px"></div>
+    <button id="btn-salva" class="btn-salva-tutto" onclick="salvaTutto()">💾 SALVA NEL FOGLIO</button>
   </div>
 
   <div id="box-cat" class="sezione">
-    <button onclick="mostra('box-home')">⬅️ Home</button>
+    <button onclick="mostra('box-home')">⬅️ Indietro</button>
     <h2>📦 Categorie</h2><div id="list-cat"></div>
   </div>
 
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
 
-    // PONTE GITHUB-GOOGLE
     const google = {
       script: { run: { withSuccessHandler: function(cb) {
         return new Proxy({}, { get(t, fn) { return async function(...args) {
@@ -66,25 +67,23 @@
     var db = {}, m_tipo = "", m_sel = {m:"", c:"", t:""}, buffer = [];
 
     window.onload = function() {
-      if(localStorage.getItem("p")) { mostra('box-home'); avvia(); } 
+      if(localStorage.getItem("log_ok")) { mostra('box-home'); avvia(); } 
       else { mostra('box-login'); }
     };
 
     function eseguiLogin() {
       var p = document.getElementById("inp-pass").value;
       google.script.run.withSuccessHandler(function(ok) {
-        if(ok) { localStorage.setItem("p", p); location.reload(); } else { alert("Pass errata"); }
+        if(ok) { localStorage.setItem("log_ok", "1"); location.reload(); } else { alert("Pass errata!"); }
       }).verificaPassword("Operatore", p);
     }
 
     function avvia() {
       google.script.run.withSuccessHandler(function(res) {
-        if(!res || !res.marche) { alert("Errore caricamento dati!"); return; }
-        db = res; 
-        document.getElementById("benvenuto-msg").innerText = "📦 Magazzino Pranio";
+        db = res;
         var s = document.getElementById("mod-art-es"); s.innerHTML = "";
         db.articoli.forEach(a => s.add(new Option(a.nome, a.nome)));
-        var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="alert(c)">${c}</button>`);
+        var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="alert(c)">📦 ${c}</button>`);
         document.getElementById("list-cat").innerHTML = h;
       }).getDatiIniziali();
     }
@@ -107,9 +106,9 @@
     }
 
     function aggiungi() {
-      buffer.push({tipo:m_tipo, articolo:document.getElementById("mod-art-es").value, qta:document.getElementById("inp-qta").value, marca:m_sel.m, colore:m_sel.c, taglia:m_sel.t});
-      var h = ""; buffer.forEach(m => h += `<div class="riga-lista">${m.qta} pz - ${m.articolo} (${m.marca})</div>`);
-      document.getElementById("lista-temporanea").innerHTML = h;
+      buffer.push({tipo: m_tipo, articolo: document.getElementById("mod-art-es").value, qta: document.getElementById("inp-qta").value, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t});
+      var h = ""; buffer.forEach(m => h += `<div style="background:#f8f9fa; padding:10px; border-radius:8px; margin-top:5px; border-left:4px solid #0084ff">${m.qta} pz - ${m.articolo} (${m.marca})</div>`);
+      document.getElementById("lista-temp").innerHTML = h;
       document.getElementById("btn-salva").style.display = "block";
     }
 
