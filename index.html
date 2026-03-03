@@ -21,7 +21,7 @@
     .res-riga { display: grid; grid-template-columns: 1fr 1.2fr 1fr 70px; gap: 5px; padding: 12px; border-bottom: 1px solid #ddd; align-items: center; font-size: 14px; }
     .res-header { font-weight: bold; background: #f8f9fa; color: #606770; text-transform: uppercase; font-size: 11px; }
     .qta-badge { background: #e7f3ff; color: #0084ff; padding: 5px 8px; border-radius: 6px; font-weight: bold; text-align: center; }
-    strong { font-weight: 700; color: black; } /* Grassetti blindati */
+    strong { font-weight: 700; color: black; } 
     
   </style>
 </head>
@@ -110,27 +110,41 @@
     function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}', ${res[n]||0})"><span><strong>${n}</strong></span><span style="color:#0084ff; font-weight:bold">${res[n]||0} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
     function apriDashInv(n, t) { art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; document.getElementById('tot-box').innerHTML = "DISPONIBILITÀ TOTALE: " + t + " pz"; disegna(db.marche, 'f-m', 'm', false); disegna(db.colori, 'f-c', 'c', false); disegna(db.taglie, 'f-t', 't', false); cerca(); }
     
+    // ======== MODIFICA: AGGIUNTA LINEA AZZURRA DI SEPARAZIONE ========
     function cerca() { 
       var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); 
       var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText); 
       var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); 
+      
       google.script.run.withSuccessHandler(function(inv) { 
         var h = '<div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>'; 
+        
+        var colorePrecedente = ""; // Memoria per capire quando cambia il colore
+        
         Object.keys(inv).sort().forEach(k => { 
           var p = k.split(" | ");
-          // Grassetti coordinati blindati
+          var coloreAttuale = p[1];
+          
+          // Se il colore cambia, inserisco la linea azzurra (tranne alla prima riga)
+          if (colorePrecedente !== "" && colorePrecedente !== coloreAttuale) {
+            h += `<div style="border-top: 2px solid #0084ff; width: 100%;"></div>`;
+          }
+          colorePrecedente = coloreAttuale; // Aggiorno la memoria per il prossimo giro
+          
           h += `<div class="res-riga">
                   <span><strong>${p[0]}</strong></span>
                   <span><strong>${p[1]}</strong></span>
                   <span><strong>${p[2]}</strong></span>
                   <div class="qta-badge">${inv[k].qta}</div>
                 </div>`; 
-        }); document.getElementById('list-res-box').innerHTML = h; }).getRisultatiRicerca(art_cerca, m, t, c); 
+        }); 
+        
+        document.getElementById('list-res-box').innerHTML = h; 
+      }).getRisultatiRicerca(art_cerca, m, t, c); 
     }
+    // ===================================================================
     
     function mostra(id) { document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none'); document.getElementById(id).style.display='block'; }
-    
-    // ====== MODULI SEGNAPOSTO FASE FINALE (Additive) ======
     
     function apriLog() { alert("Semplificazione log in corso..."); /* Verrà montato domani mattina */ }
     function apriFotocamera() { alert("Aggiunta fotocamera in corso..."); /* Verrà montato domani mattina */ }
