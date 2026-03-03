@@ -4,110 +4,108 @@
   <base target="_top"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
-    .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
+    body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; color: #1c1e21; }
+    .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; transition: 0.2s; }
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
+    .btn-log { background: #17a2b8; } .btn-sito { background: #343a40; }
+    .btn-main:active { transform: scale(0.98); }
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; }
-    label { display: block; margin-top: 15px; font-weight: bold; font-size: 11px; color: #606770; text-transform: uppercase; }
+    label { display: block; margin-top: 15px; font-weight: bold; font-size: 11px; color: #606770; text-transform: uppercase; letter-spacing: 0.5px; }
     select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
     .griglia { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; }
+    .cubo { padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; font-size: 13px; font-weight: bold; cursor: pointer; transition: 0.2s; }
     .cubo.attivo { background: #0084ff !important; color: white !important; }
-    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; }
+    .switch-link { float: right; font-size: 12px; color: #0084ff; font-weight: bold; cursor: pointer; text-decoration: underline; }
+    .card { background: white; padding: 15px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; border: 1px solid #ddd; align-items: center; cursor: pointer; }
     .res-riga { display: grid; grid-template-columns: 1fr 1.2fr 1fr 70px; gap: 5px; padding: 12px; border-bottom: 1px solid #eee; align-items: center; font-size: 14px; }
     .res-header { font-weight: bold; background: #f8f9fa; color: #606770; text-transform: uppercase; font-size: 11px; border-bottom: 2px solid #ddd; }
     .qta-badge { background: #e7f3ff; color: #0084ff; padding: 5px 8px; border-radius: 6px; font-weight: bold; text-align: center; }
-    #box-foto-inv { width: 100%; max-height: 250px; object-fit: contain; border-radius: 15px; margin-bottom: 15px; display: none; border: 1px solid #ddd; background: #fff; }
+    strong { font-weight: 700; color: black; }
+    #box-foto-inv { width: 100%; max-height: 200px; object-fit: contain; border-radius: 15px; margin-bottom: 15px; background: #eee; display: none; border: 1px solid #ddd; }
   </style>
 </head>
 <body>
-  <div id="box-login" style="display:none"><h1>🔒 Login</h1><input type="password" id="inp-pass" placeholder="Password"><button class="btn-main" style="background:#0084ff;" onclick="eseguiLogin()">ENTRA</button></div>
+  <div id="box-login" style="display:none"><h1>🔒 Login</h1><input type="password" id="inp-pass" placeholder="Password"><button class="btn-main" style="background:#0084ff; margin-top:10px" onclick="eseguiLogin()">ENTRA</button></div>
   <div id="box-home" style="display:none">
-    <h1>📦 Magazzino Pranio</h1>
+    <h1 style="color:#000;">📦 Magazzino Pranio</h1>
     <button class="btn-main btn-carico" onclick="apriMod('Carico')">➕ CARICA MERCE</button>
     <button class="btn-main btn-scarico" onclick="apriMod('Scarico')">➖ SCARICA MERCE</button>
-    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 INVENTARIO</button>
-    <button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:none; cursor:pointer;">Esci 🚪</button>
+    <button class="btn-main btn-inv" onclick="mostra('box-cat')">🔍 CERCA INVENTARIO</button>
+    <button class="btn-main btn-log" onclick="apriLog()">📜 STORICO MOVIMENTI</button>
+    <button class="btn-main btn-sito" onclick="window.open('https://gift-idea-7990.myshopify.com/', '_blank')">🛒 VAI ALLO STORE</button>
+    <button onclick="localStorage.clear(); location.reload();" style="color:red; background:none; border:none; cursor:pointer; margin-top:10px">Esci 🚪</button>
   </div>
-
   <div id="box-mod" class="sezione">
     <button onclick="mostra('box-home')">⬅️ Home</button><h2 id="tit-mod"></h2>
-    <label>Categoria</label><select id="mod-cat-es" onchange="filtraArt()"></select>
-    <label>Articolo</label><select id="mod-art-es"></select>
-    <button class="btn-main" style="background:#343a40; margin-top:15px; font-size:14px; padding:10px" onclick="document.getElementById('inp-foto').click()">📷 SCATTA FOTO</button>
-    <input type="file" id="inp-foto" accept="image/*" capture="environment" style="display:none" onchange="elaboraFoto(event)">
-    <div id="ante-foto" style="display:none; margin-top:10px; text-align:center;"><img id="img-mod-ante" src="" style="width:100px; height:100px; object-fit:cover; border-radius:10px;"></div>
+    <label>Categoria <span onclick="toggleNuovaCat()" class="switch-link">➕ Nuova?</span></label>
+    <select id="mod-cat-es" onchange="filtraArt()"></select>
+    <input type="text" id="mod-cat-nuova" style="display:none" placeholder="Scrivi nuova categoria..." onkeyup="aggiornaTaglieVisibili()">
+    <label>Articolo <span onclick="toggleNuovoArt()" class="switch-link">➕ Nuovo?</span></label>
+    <select id="mod-art-es"></select>
+    <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Scrivi nuovo articolo...">
+    <div style="background:#f8f9fa; padding:15px; border-radius:10px; margin-top:15px; text-align:center;">
+      <label style="margin-top:0;">FOTO PRODOTTO</label>
+      <input type="file" id="inp-foto" accept="image/*" capture="environment" style="display:none" onchange="elaboraFoto(event)">
+      <button class="btn-main" style="background:#343a40; padding:10px; font-size:14px; width:100%; margin-top:10px;" onclick="document.getElementById('inp-foto').click()">📷 SCATTA FOTO</button>
+      <div id="ante-foto" style="display:none; margin-top:10px">
+        <img id="img-mod-ante" src="" style="width:120px; height:120px; object-fit:cover; border-radius:10px; border:2px solid #ddd;">
+        <br><button onclick="rimuoviFoto()" style="color:red; background:none; border:none; margin-top:5px; font-weight:bold; cursor:pointer">❌ Rimuovi</button>
+      </div>
+    </div>
     <label>Quantità</label><input type="number" id="inp-qta" placeholder="0">
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
-    <label>Colore</label><div id="cubi-c" class="griglia"></div>
+    <label>Colore <span onclick="toggleNuovoColore()" class="switch-link">➕ Nuovo?</span></label>
+    <div id="cubi-c" class="griglia"></div><input type="text" id="mod-colore-nuovo" style="display:none" placeholder="Scrivi nuovo colore...">
     <label>Taglia</label><div id="cubi-t" class="griglia"></div>
-    <button class="btn-main" style="background:#0084ff; margin-top:20px" onclick="aggiungi()">➕ AGGIUNGI</button>
-    <div id="lista-temp"></div><button id="btn-salva" class="btn-main btn-carico" style="display:none;" onclick="salva()">💾 SALVA TUTTO</button>
+    <div id="area-forn"><label>Fornitore</label><select id="sel-forn"></select></div>
+    <div id="area-clie" style="display:none"><label>Cliente</label><select id="sel-clie"></select></div>
+    <button class="btn-main" style="background:#0084ff; margin-top:15px" onclick="aggiungi()">➕ AGGIUNGI ALLA LISTA</button>
+    <div id="lista-temp"></div><button id="btn-salva" class="btn-main btn-carico" style="display:none; margin-top:20px" onclick="salva()">💾 SALVA TUTTO NEL FOGLIO</button>
   </div>
-
   <div id="box-cat" class="sezione"><button onclick="mostra('box-home')">⬅️ Home</button><h2>📦 Categorie</h2><div id="list-cat"></div></div>
   <div id="box-art" class="sezione"><button onclick="mostra('box-cat')">⬅️ Categorie</button><h2 id="tit-cat-inv"></h2><div id="list-art"></div></div>
-
   <div id="box-dash" class="sezione">
     <button onclick="mostra('box-art')">⬅️ Articoli</button><h2 id="tit-dash"></h2>
     <img id="box-foto-inv" src="">
-    <div id="tot-box" style="background:#0084ff; color:white; padding:15px; border-radius:10px; text-align:center; font-weight:bold; margin-bottom:15px"></div>
-    <div id="list-res-box"></div>
-    <button class="btn-main" style="background:#dc3545; margin-top:20px" onclick="scaricaPdfCategoria()">📄 PDF</button>
+    <div id="tot-box" style="background:#0084ff; color:white; padding:15px; border-radius:10px; margin-top:10px; font-weight:bold; text-align:center"></div>
+    <label>Filtri:</label><div id="f-m" class="griglia"></div><div id="f-c" class="griglia"></div><div id="f-t" class="griglia"></div>
+    <button class="btn-main" style="background:#28a745; margin-top:15px" onclick="cerca()">🔄 AGGIORNA LISTA</button>
+    <button class="btn-main" style="background:#dc3545; padding:15px; font-size:14px; margin-top:5px" onclick="scaricaPdfCategoria()">📄 STAMPA / SALVA PDF</button>
+    <div id="list-res-box" style="margin-top:15px"></div>
   </div>
-
+  <div id="box-log" class="sezione">
+    <button onclick="mostra('box-home')">⬅️ Home</button><h2>📜 Ultimi Movimenti</h2>
+    <div id="list-log" style="margin-top:15px;"></div>
+  </div>
   <script>
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
     const google = { script: { run: { withSuccessHandler: function(cb) { return new Proxy({}, { get(t, fn) { return async function(...args) { const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ azione: fn, args: args }) }); const d = await r.json(); cb(d); }}}); }}} };
-    var db = {}, m_sel = {m:"", c:"", t:""}, buffer = [], art_cerca = "", fotoBase64 = null, fotoNome = null;
-
+    var db = {}, m_sel = {m:"", c:"", t:""}, buffer = [], art_cerca = "";
+    var fotoBase64 = null, fotoNome = null;
     window.onload = function() { if(localStorage.getItem("ok")) { mostra('box-home'); avvia(); } else mostra('box-login'); };
-    function eseguiLogin() { var p = document.getElementById("inp-pass").value; if(p==="Grafiche1"){ localStorage.setItem("ok","1"); location.reload(); } else alert("Sbagliata"); }
-    function avvia() { google.script.run.withSuccessHandler(function(res) { db = res; var sC = document.getElementById("mod-cat-es"); sC.innerHTML = "<option value=''>Scegli...</option>"; db.categorie.forEach(c => sC.add(new Option(c, c))); var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd;" onclick="apriArtInv('${c}')"><strong>📦 ${c}</strong></button>`); document.getElementById("list-cat").innerHTML = h; }).getDatiIniziali(); }
-    
-    function aggiornaTaglieVisibili() { 
-      var cat = document.getElementById("mod-cat-es").value.toLowerCase(); 
-      var isB = cat.includes("bambin"); 
-      var isA = cat.includes("adult"); 
-      document.querySelectorAll('#cubi-t .cubo').forEach(b => { 
-        var t = b.innerText; 
-        var isLettera = /[a-zA-Z]/.test(t); 
-        b.style.display = (isB && isLettera) || (isA && !isLettera) ? "none" : "inline-block"; 
-      }); 
-    }
-
+    function eseguiLogin() { var p = document.getElementById("inp-pass").value; google.script.run.withSuccessHandler(function(ok) { if(ok) { localStorage.setItem("ok", "1"); location.reload(); } else alert("Errore"); }).verificaPassword("Operatore", p); }
+    function avvia() { google.script.run.withSuccessHandler(function(res) { db = res; var sC = document.getElementById("mod-cat-es"); sC.innerHTML = "<option value=''>Scegli...</option>"; db.categorie.forEach(c => sC.add(new Option(c, c))); var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f))); var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c))); var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd; padding: 15px;" onclick="apriArtInv('${c}')"><strong>📦 ${c}</strong></button>`); document.getElementById("list-cat").innerHTML = h; }).getDatiIniziali(); }
+    function aggiornaTaglieVisibili() { var isCatN = document.getElementById("mod-cat-nuova").style.display !== 'none'; var catAttuale = (isCatN ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value).toLowerCase(); var isBambino = catAttuale.includes("bambin"); var isAdulto = catAttuale.includes("adult"); document.querySelectorAll('#cubi-t .cubo').forEach(b => { var txt = b.innerText.toUpperCase(); var isTagliaAdulto = txt === "XS" || txt === "S" || txt === "M" || txt === "L" || txt.includes("XL"); var isTagliaBambino = /[0-9]/.test(txt) && !txt.includes("XL"); b.style.display = "inline-block"; if (isBambino && isTagliaAdulto) b.style.display = "none"; if (isAdulto && isTagliaBambino) b.style.display = "none"; }); }
     function filtraArt() { var cat = document.getElementById("mod-cat-es").value; var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.filter(a => a.cat === cat).forEach(a => sA.add(new Option(a.nome, a.nome))); aggiornaTaglieVisibili(); }
+    function toggleNuovaCat() { var e = document.getElementById("mod-cat-es"), n = document.getElementById("mod-cat-nuova"); if(e.style.display==='none') { e.style.display='block'; n.style.display='none'; } else { e.style.display='none'; n.style.display='block'; } aggiornaTaglieVisibili(); }
+    function toggleNuovoArt() { var e = document.getElementById("mod-art-es"), n = document.getElementById("mod-art-nuovo"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
+    function toggleNuovoColore() { var e = document.getElementById("cubi-c"), n = document.getElementById("mod-colore-nuovo"); if(e.style.display === 'none') { e.style.display = 'flex'; n.style.display = 'none'; n.value = ''; } else { e.style.display = 'none'; n.style.display = 'block'; m_sel.c = ""; } }
     function elaboraFoto(event) { var file = event.target.files[0]; if(!file) return; fotoNome = file.name; var reader = new FileReader(); reader.onload = function(e) { fotoBase64 = e.target.result; document.getElementById('img-mod-ante').src = fotoBase64; document.getElementById('ante-foto').style.display = 'block'; }; reader.readAsDataURL(file); }
-    function apriMod(t) { m_sel = {m:"", c:"", t:""}; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; disegna(db.marche, 'cubi-m', 'm'); disegna(db.colori, 'cubi-c', 'c'); disegna(db.taglie, 'cubi-t', 't'); aggiornaTaglieVisibili(); }
-    function disegna(lista, id, campo) { var cont = document.getElementById(id); cont.innerHTML = ""; (lista || []).forEach(v => { var b = document.createElement("button"); b.className = "cubo"; b.innerText = v; b.onclick = function() { document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); this.classList.add('attivo'); m_sel[campo] = v; }; cont.appendChild(b); }); }
-    function aggiungi() { var art = document.getElementById("mod-art-es").value; var qta = document.getElementById("inp-qta").value; if(!art || !qta) return alert("Manca articolo o quantità!"); buffer.push({tipo: document.getElementById("tit-mod").innerText, articolo: art, cat: document.getElementById("mod-cat-es").value, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, fotoBase64: fotoBase64, fotoNome: fotoNome}); var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore})</div>`); document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block"; }
-    function salva() { document.getElementById("btn-salva").innerText = "⏳..."; google.script.run.withSuccessHandler(function() { alert("Fatto!"); location.reload(); }).registraMovimentiBatch(buffer); }
-    function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}', ${res[n]})"><span><strong>${n}</strong></span><span style="color:#0084ff; font-weight:bold">${res[n]} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
-    
+    function rimuoviFoto() { fotoBase64 = null; fotoNome = null; document.getElementById('ante-foto').style.display = 'none'; document.getElementById('inp-foto').value = ""; }
+    function apriMod(t) { m_sel = {m:"", c:"", t:""}; rimuoviFoto(); mostra('box-mod'); document.getElementById("tit-mod").innerText = t; document.getElementById("area-forn").style.display = t === 'Carico' ? 'block' : 'none'; document.getElementById("area-clie").style.display = t === 'Scarico' ? 'block' : 'none'; document.getElementById("cubi-c").style.display = 'flex'; document.getElementById("mod-colore-nuovo").style.display = 'none'; document.getElementById("mod-colore-nuovo").value = ''; disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true); aggiornaTaglieVisibili(); }
+    function disegna(lista, id, campo, single) { var cont = document.getElementById(id); cont.innerHTML = ""; (lista || []).forEach(v => { var b = document.createElement("button"); b.className = "cubo"; b.innerText = v; b.onclick = function() { if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); this.classList.toggle('attivo'); m_sel[campo] = this.classList.contains('attivo') ? v : ""; }; cont.appendChild(b); }); }
+    function aggiungi() { var isArtN = document.getElementById("mod-art-nuovo").style.display !== 'none'; var art = isArtN ? document.getElementById("mod-art-nuovo").value : document.getElementById("mod-art-es").value; var cat = document.getElementById("mod-cat-nuova").style.display !== 'none' ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value; var isColN = document.getElementById("mod-colore-nuovo").style.display !== 'none'; var coloreFinale = isColN ? document.getElementById("mod-colore-nuovo").value : m_sel.c; var qta = document.getElementById("inp-qta").value; if(!art || !qta || isNaN(qta)) return alert("Dati mancanti o quantità errata!"); buffer.push({tipo: document.getElementById("tit-mod").innerText, articolo: art, cat: cat, qta: qta, marca: m_sel.m, colore: coloreFinale, taglia: m_sel.t, isNuovo: isArtN, isColoreNuovo: isColN, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value, fotoBase64: fotoBase64, fotoNome: fotoNome}); var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore}) ${m.fotoBase64 ? '📷' : ''}</div>`); document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block"; rimuoviFoto(); }
+    function salva() { document.getElementById("btn-salva").innerText = "⏳ SALVATAGGIO..."; google.script.run.withSuccessHandler(function() { alert("Fatto!"); location.reload(); }).registraMovimentiBatch(buffer); }
+    function apriArtInv(c) { mostra('box-art'); document.getElementById('tit-cat-inv').innerText = c; google.script.run.withSuccessHandler(function(res) { var h = ""; Object.keys(res).forEach(n => h += `<div class="card" onclick="apriDashInv('${n}', ${res[n]||0})"><span><strong>${n}</strong></span><span style="color:#0084ff; font-weight:bold">${res[n]||0} pz ➡️</span></div>`); document.getElementById('list-art').innerHTML = h || "Vuoto"; }).getGiacenzeCategoriaTotali(c); }
     function apriDashInv(n, t) { 
-      art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; document.getElementById('tot-box').innerHTML = "DISPONIBILITÀ TOTALE: " + t + " pz"; 
+      art_cerca = n; mostra('box-dash'); document.getElementById('tit-dash').innerText = n; document.getElementById('tot-box').innerHTML = "DISPONIBILITÀ: " + t + " pz"; 
       var img = document.getElementById('box-foto-inv'); img.style.display = 'none';
       google.script.run.withSuccessHandler(function(link) { if(link) { img.src = link; img.style.display = 'block'; } }).getUltimaFoto(n);
-      cerca(); 
+      disegna(db.marche, 'f-m', 'm', false); disegna(db.colori, 'f-c', 'c', false); disegna(db.taglie, 'f-t', 't', false); cerca(); 
     }
-
-    function cerca() { 
-      google.script.run.withSuccessHandler(function(inv) { 
-        var h = ""; var colPrec = ""; var htmlGr = ""; var keys = Object.keys(inv).sort(); 
-        keys.forEach(k => { 
-          var p = k.split(" | "); var colAtt = p[1] || "-"; 
-          if (colPrec !== "" && colPrec !== colAtt) { 
-            h += `<div style="border:2px solid #0084ff; border-radius:10px; margin-bottom:15px; overflow:hidden; background:white;"><div style="background:#0084ff; color:white; padding:8px; font-weight:bold; font-size:14px;">🎨 COLORE: ${colPrec}</div><div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>${htmlGr}</div>`; 
-            htmlGr = ""; 
-          } 
-          colPrec = colAtt; 
-          htmlGr += `<div class="res-riga"><span>${p[0]}</span><span>${p[1]}</span><span>${p[2]}</span><div class="qta-badge">${inv[k].qta}</div></div>`; 
-        }); 
-        if (colPrec !== "") h += `<div style="border:2px solid #0084ff; border-radius:10px; margin-bottom:15px; overflow:hidden; background:white;"><div style="background:#0084ff; color:white; padding:8px; font-weight:bold; font-size:14px;">🎨 COLORE: ${colPrec}</div><div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>${htmlGr}</div>`; 
-        document.getElementById('list-res-box').innerHTML = h; 
-      }).getRisultatiRicerca(art_cerca, [], [], []); 
-    }
-
+    function cerca() { var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText); var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); google.script.run.withSuccessHandler(function(inv) { var h = ""; var colPrec = ""; var htmlGr = ""; var resKeys = Object.keys(inv).sort(); if(resKeys.length === 0) { document.getElementById('list-res-box').innerHTML = "<div style='padding:20px'>Vuoto.</div>"; return; } resKeys.forEach(k => { var p = k.split(" | "); var colAtt = p[1] || "Nessun Colore"; if (colPrec !== "" && colPrec !== colAtt) { h += `<div style="border:2px solid #0084ff; border-radius:10px; margin-bottom:15px; background:white; overflow:hidden;"><div style="background:#0084ff; color:white; padding:8px 15px; font-weight:bold; font-size:14px;">🎨 COLORE: ${colPrec}</div><div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>${htmlGr}</div>`; htmlGr = ""; } colPrec = colAtt; htmlGr += `<div class="res-riga"><span><strong>${p[0]}</strong></span><span><strong>${p[1]}</strong></span><span><strong>${p[2]}</strong></span><div class="qta-badge">${inv[k].qta}</div></div>`; }); if (colPrec !== "") { h += `<div style="border:2px solid #0084ff; border-radius:10px; margin-bottom:15px; background:white; overflow:hidden;"><div style="background:#0084ff; color:white; padding:8px 15px; font-weight:bold; font-size:14px;">🎨 COLORE: ${colPrec}</div><div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>${htmlGr}</div>`; } document.getElementById('list-res-box').innerHTML = h; }).getRisultatiRicerca(art_cerca, m, t, c); }
+    function scaricaPdfCategoria() { var btn = event.target; btn.innerText = "⏳ PDF..."; var lista = document.getElementById('list-res-box').innerHTML; var titolo = document.getElementById('tit-dash').innerText; var divPdf = document.createElement('div'); divPdf.innerHTML = `<div style="text-align:center; margin-bottom: 20px;"><h1 style="color:#0084ff; margin:0;">GRAFICHE PRANIO</h1><h2 style="margin:5px 0;">Inventario</h2><p style="color:#666; margin:0;"><strong>Articolo:</strong> ${titolo}</p></div><div style="background: white; padding: 10px;">${lista}</div>`; var opt = { margin: 10, filename: 'Inventario_' + titolo + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } }; html2pdf().set(opt).from(divPdf).save().then(function(){ btn.innerText = "📄 PDF"; }); }
+    function apriLog() { mostra('box-log'); document.getElementById('list-log').innerHTML = "<div style='padding:20px;'>⏳ Caricamento...</div>"; google.script.run.withSuccessHandler(function(logDati) { var h = ""; logDati.forEach(r => { var d = new Date(r.data); var df = d.toLocaleDateString('it-IT') + " " + d.toLocaleTimeString('it-IT', {hour: '2-digit', minute:'2-digit'}); var bg = r.tipo === 'Carico' ? '#e8f5e9' : '#ffebee'; var tx = r.tipo === 'Carico' ? '#28a745' : '#dc3545'; var s = r.tipo === 'Carico' ? '+' : '-'; h += `<div class="card" style="background:${bg}; border-left: 5px solid ${tx}; display:block;"><div style="font-size:12px; color:#555;">🕒 ${df} | <strong>${r.tipo}</strong></div><div style="font-size:15px;"><strong>${r.art}</strong> (${r.colore} - ${r.taglia})</div><div style="font-size:18px; color:${tx}; font-weight:bold;">${s}${r.qta} pz</div></div>`; }); document.getElementById('list-log').innerHTML = h || "Nessun movimento."; }).getLogOperazioni(); }
     function mostra(id) { document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none'); document.getElementById(id).style.display='block'; }
   </script>
 </body>
