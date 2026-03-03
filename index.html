@@ -6,7 +6,7 @@
     body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; margin: 0; padding: 15px; text-align: center; }
     .btn-main { width: 100%; padding: 22px; border-radius: 15px; border: none; font-size: 18px; font-weight: bold; color: white; margin-bottom: 12px; cursor: pointer; }
     .btn-carico { background: #28a745; } .btn-scarico { background: #dc3545; } .btn-inv { background: #6f42c1; }
-    .btn-sito { background: #343a40; } /* Colore Grigio scuro per il sito */
+    .btn-sito { background: #343a40; }
     .sezione { display: none; text-align: left; background: white; padding: 20px; border-radius: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
     label { display: block; margin-top: 15px; font-weight: bold; font-size: 12px; color: #606770; text-transform: uppercase; }
     select, input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
@@ -33,18 +33,27 @@
   
   <div id="box-mod" class="sezione">
     <button onclick="mostra('box-home')">⬅️ Home</button><h2 id="tit-mod"></h2>
+    
     <label>Categoria <span onclick="toggleNuovaCat()" class="switch-link">➕ Nuova?</span></label>
     <select id="mod-cat-es" onchange="filtraArt()"></select>
     <input type="text" id="mod-cat-nuova" style="display:none" placeholder="Scrivi nuova categoria...">
+    
     <label>Articolo <span onclick="toggleNuovoArt()" class="switch-link">➕ Nuovo?</span></label>
     <select id="mod-art-es"></select>
     <input type="text" id="mod-art-nuovo" style="display:none" placeholder="Scrivi nuovo articolo...">
+    
     <label>Quantità</label><input type="number" id="inp-qta" placeholder="0">
+    
     <label>Marca</label><div id="cubi-m" class="griglia"></div>
-    <label>Colore</label><div id="cubi-c" class="griglia"></div>
+    
+    <label>Colore <span onclick="toggleNuovoColore()" class="switch-link">➕ Nuovo?</span></label>
+    <div id="cubi-c" class="griglia"></div>
+    <input type="text" id="mod-colore-nuovo" style="display:none" placeholder="Scrivi nuovo colore...">
+    
     <label>Taglia</label><div id="cubi-t" class="griglia"></div>
     <div id="area-forn"><label>Fornitore</label><select id="sel-forn"></select></div>
     <div id="area-clie" style="display:none"><label>Cliente</label><select id="sel-clie"></select></div>
+    
     <button class="btn-main" style="background:#0084ff; margin-top:15px" onclick="aggiungi()">➕ AGGIUNGI ALLA LISTA</button>
     <div id="lista-temp"></div><button id="btn-salva" class="btn-main btn-carico" style="display:none; margin-top:20px" onclick="salva()">💾 SALVA TUTTO NEL FOGLIO</button>
   </div>
@@ -69,19 +78,45 @@
     function avvia() { google.script.run.withSuccessHandler(function(res) { db = res; var sC = document.getElementById("mod-cat-es"); sC.innerHTML = "<option value=''>Scegli...</option>"; db.categorie.forEach(c => sC.add(new Option(c, c))); var sF = document.getElementById("sel-forn"); sF.innerHTML = ""; db.fornitori.forEach(f => sF.add(new Option(f, f))); var sCl = document.getElementById("sel-clie"); sCl.innerHTML = ""; db.clienti.forEach(c => sCl.add(new Option(c, c))); var h = ""; db.categorie.forEach(c => h += `<button class="btn-main" style="background:#fff; color:#000; border:1px solid #ddd" onclick="apriArtInv('${c}')">📦 ${c}</button>`); document.getElementById("list-cat").innerHTML = h; }).getDatiIniziali(); }
     
     function filtraArt() { var cat = document.getElementById("mod-cat-es").value; var sA = document.getElementById("mod-art-es"); sA.innerHTML = ""; db.articoli.filter(a => a.cat === cat).forEach(a => sA.add(new Option(a.nome, a.nome))); }
+    
     function toggleNuovaCat() { var e = document.getElementById("mod-cat-es"), n = document.getElementById("mod-cat-nuova"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
     function toggleNuovoArt() { var e = document.getElementById("mod-art-es"), n = document.getElementById("mod-art-nuovo"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
+    function toggleNuovoColore() { 
+      var e = document.getElementById("cubi-c"), n = document.getElementById("mod-colore-nuovo"); 
+      if(e.style.display === 'none') { e.style.display = 'flex'; n.style.display = 'none'; n.value = ''; } 
+      else { e.style.display = 'none'; n.style.display = 'block'; m_sel.c = ""; } 
+    }
     
-    function apriMod(t) { m_sel = {m:"", c:"", t:""}; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; document.getElementById("area-forn").style.display = t === 'Carico' ? 'block' : 'none'; document.getElementById("area-clie").style.display = t === 'Scarico' ? 'block' : 'none'; disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true); }
+    function apriMod(t) { 
+      m_sel = {m:"", c:"", t:""}; mostra('box-mod'); document.getElementById("tit-mod").innerText = t; 
+      document.getElementById("area-forn").style.display = t === 'Carico' ? 'block' : 'none'; 
+      document.getElementById("area-clie").style.display = t === 'Scarico' ? 'block' : 'none'; 
+      document.getElementById("cubi-c").style.display = 'flex'; document.getElementById("mod-colore-nuovo").style.display = 'none'; document.getElementById("mod-colore-nuovo").value = '';
+      disegna(db.marche, 'cubi-m', 'm', true); disegna(db.colori, 'cubi-c', 'c', true); disegna(db.taglie, 'cubi-t', 't', true); 
+    }
+    
     function disegna(lista, id, campo, single) { var cont = document.getElementById(id); cont.innerHTML = ""; (lista || []).forEach(v => { var b = document.createElement("button"); b.className = "cubo"; b.innerText = v; b.onclick = function() { if(single) document.querySelectorAll('#'+id+' .cubo').forEach(x => x.classList.remove('attivo')); this.classList.toggle('attivo'); m_sel[campo] = this.classList.contains('attivo') ? v : ""; }; cont.appendChild(b); }); }
     
     function aggiungi() { 
       var isArtN = document.getElementById("mod-art-nuovo").style.display !== 'none';
       var art = isArtN ? document.getElementById("mod-art-nuovo").value : document.getElementById("mod-art-es").value;
       var cat = document.getElementById("mod-cat-nuova").style.display !== 'none' ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value;
+      
+      var isColN = document.getElementById("mod-colore-nuovo").style.display !== 'none';
+      var coloreFinale = isColN ? document.getElementById("mod-colore-nuovo").value : m_sel.c;
+      
       var qta = document.getElementById("inp-qta").value;
       if(!art || !qta || isNaN(qta)) return alert("Dati mancanti o quantità errata!");
-      buffer.push({tipo: document.getElementById("tit-mod").innerText, articolo: art, cat: cat, qta: qta, marca: m_sel.m, colore: m_sel.c, taglia: m_sel.t, isNuovo: isArtN, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value});
+      
+      buffer.push({
+        tipo: document.getElementById("tit-mod").innerText, 
+        articolo: art, cat: cat, qta: qta, 
+        marca: m_sel.m, colore: coloreFinale, taglia: m_sel.t, 
+        isNuovo: isArtN, isColoreNuovo: isColN,
+        fornitore: document.getElementById("sel-forn").value, 
+        cliente: document.getElementById("sel-clie").value
+      });
+      
       var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore})</div>`);
       document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block";
     }
