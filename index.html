@@ -91,7 +91,7 @@
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzxjMoT79MDSrcCWckuIHaKRucnaIcqrN2MnPggYekXhZUwB8lBY_1Wcj0NxH_DvPG6Sw/exec";
     const google = { script: { run: { withSuccessHandler: function(cb) { return new Proxy({}, { get(t, fn) { return async function(...args) { const r = await fetch(SCRIPT_URL, { method: "POST", body: JSON.stringify({ azione: fn, args: args }) }); const d = await r.json(); cb(d); }}}); }}} };
     var db = {}, m_sel = {m:"", c:"", t:""}, buffer = [], art_cerca = "";
-    var fotoBase64 = null, fotoNome = null; // Variabili per la foto
+    var fotoBase64 = null, fotoNome = null;
 
     window.onload = function() { if(localStorage.getItem("ok")) { mostra('box-home'); avvia(); } else mostra('box-login'); };
     function eseguiLogin() { var p = document.getElementById("inp-pass").value; google.script.run.withSuccessHandler(function(ok) { if(ok) { localStorage.setItem("ok", "1"); location.reload(); } else alert("Errore"); }).verificaPassword("Operatore", p); }
@@ -102,7 +102,6 @@
     function toggleNuovoArt() { var e = document.getElementById("mod-art-es"), n = document.getElementById("mod-art-nuovo"); e.style.display = e.style.display==='none'?'block':'none'; n.style.display = n.style.display==='none'?'block':'none'; }
     function toggleNuovoColore() { var e = document.getElementById("cubi-c"), n = document.getElementById("mod-colore-nuovo"); if(e.style.display === 'none') { e.style.display = 'flex'; n.style.display = 'none'; n.value = ''; } else { e.style.display = 'none'; n.style.display = 'block'; m_sel.c = ""; } }
     
-    // LOGICA FOTOCAMERA
     function elaboraFoto(event) {
       var file = event.target.files[0];
       if(!file) return;
@@ -128,10 +127,9 @@
     
     function aggiungi() { 
       var isArtN = document.getElementById("mod-art-nuovo").style.display !== 'none'; var art = isArtN ? document.getElementById("mod-art-nuovo").value : document.getElementById("mod-art-es").value; var cat = document.getElementById("mod-cat-nuova").style.display !== 'none' ? document.getElementById("mod-cat-nuova").value : document.getElementById("mod-cat-es").value; var isColN = document.getElementById("mod-colore-nuovo").style.display !== 'none'; var coloreFinale = isColN ? document.getElementById("mod-colore-nuovo").value : m_sel.c; var qta = document.getElementById("inp-qta").value; if(!art || !qta || isNaN(qta)) return alert("Dati mancanti o quantità errata!"); 
-      // Aggiunta foto al buffer
       buffer.push({tipo: document.getElementById("tit-mod").innerText, articolo: art, cat: cat, qta: qta, marca: m_sel.m, colore: coloreFinale, taglia: m_sel.t, isNuovo: isArtN, isColoreNuovo: isColN, fornitore: document.getElementById("sel-forn").value, cliente: document.getElementById("sel-clie").value, fotoBase64: fotoBase64, fotoNome: fotoNome}); 
       var h = ""; buffer.forEach(m => h += `<div class="card"><b>${m.qta} pz</b> - ${m.articolo} (${m.colore}) ${m.fotoBase64 ? '📷' : ''}</div>`); document.getElementById("lista-temp").innerHTML = h; document.getElementById("btn-salva").style.display = "block"; 
-      rimuoviFoto(); // reset per l'articolo successivo
+      rimuoviFoto(); 
     }
     
     function salva() { 
@@ -156,7 +154,6 @@
       }).getRisultatiRicerca(art_cerca, m, t, c); 
     }
     
-    // GENERAZIONE PDF NATIVA (Senza caricare il server)
     function scaricaPdfCategoria() {
       var btn = event.target; btn.innerText = "⏳ Generazione in corso...";
       var lista = document.getElementById('list-res-box').innerHTML;
@@ -175,17 +172,8 @@
         </div>
       `;
       
-      var opt = {
-        margin:       10,
-        filename:     'Inventario_' + titolo + '.pdf',
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2 },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-      
-      html2pdf().set(opt).from(divPdf).save().then(function(){
-        btn.innerText = "📄 STAMPA / SALVA PDF";
-      });
+      var opt = { margin: 10, filename: 'Inventario_' + titolo + '.pdf', image: { type: 'jpeg', quality: 0.98 }, html2canvas: { scale: 2 }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' } };
+      html2pdf().set(opt).from(divPdf).save().then(function(){ btn.innerText = "📄 STAMPA / SALVA PDF"; });
     }
     
     function mostra(id) { document.querySelectorAll('.sezione, #box-home, #box-login').forEach(s => s.style.display='none'); document.getElementById(id).style.display='block'; }
