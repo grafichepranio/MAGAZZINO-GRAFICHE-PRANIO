@@ -111,7 +111,8 @@
         "blu":"#0000FF", "giallo":"#ffc107", "grigio":"#6c757d", "rosa":"#e83e8c", 
         "arancio":"#fd7e14", "marrone":"#795548", "viola":"#6f42c1", "beige":"#f5f5dc",
         "azzurro":"#00BFFF", "fuxia":"#FF00FF", "light yellow":"#FFFACD", 
-        "navy":"#000080", "royal":"#4169E1"
+        "navy":"#000080", "royal":"#4169E1",
+        "rasberry":"#e30b5d", "verde fluo":"#39FF14"
       };
       return m[c.toLowerCase().trim()] || "#0084ff"; // Se non lo trova, azzurro praniostyle default
     }
@@ -119,7 +120,7 @@
     function getTxColor(c) { 
       var col = c.toLowerCase().trim();
       // Se è un colore chiaro, testo nero. Altrimenti bianco.
-      return (col === "giallo" || col === "beige" || col === "bianco" || col === "light yellow") ? "#000" : "#fff"; 
+      return (col === "giallo" || col === "beige" || col === "bianco" || col === "light yellow" || col === "verde fluo") ? "#000" : "#fff"; 
     }
 
     function cerca() { var m = Array.from(document.querySelectorAll('#f-m .attivo')).map(b => b.innerText); var c = Array.from(document.querySelectorAll('#f-c .attivo')).map(b => b.innerText); var t = Array.from(document.querySelectorAll('#f-t .attivo')).map(b => b.innerText); google.script.run.withSuccessHandler(function(inv) { var h = ""; var colPrec = ""; var htmlGr = ""; var resKeys = Object.keys(inv).sort(); if(resKeys.length === 0) { document.getElementById('list-res-box').innerHTML = "<div style='padding:20px'>Vuoto.</div>"; return; } resKeys.forEach(k => { var p = k.split(" | "); var colAtt = p[1] || "Nessun Colore"; if (colPrec !== "" && colPrec !== colAtt) { h += `<div style="border:2px solid #0084ff; border-radius:10px; margin-bottom:15px; background:white; overflow:hidden;"><div style="background:${getBgColor(colPrec)}; color:${getTxColor(colPrec)}; padding:8px 15px; font-weight:bold; font-size:14px;">🎨 COLORE: ${colPrec}</div><div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>${htmlGr}</div>`; htmlGr = ""; } colPrec = colAtt; htmlGr += `<div class="res-riga"><span><strong>${p[0]}</strong></span><span><strong>${p[1]}</strong></span><span><strong>${p[2]}</strong></span><div class="qta-badge">${inv[k].qta}</div></div>`; }); if (colPrec !== "") { h += `<div style="border:2px solid #0084ff; border-radius:10px; margin-bottom:15px; background:white; overflow:hidden;"><div style="background:${getBgColor(colPrec)}; color:${getTxColor(colPrec)}; padding:8px 15px; font-weight:bold; font-size:14px;">🎨 COLORE: ${colPrec}</div><div class="res-riga res-header"><span>Marca</span><span>Colore</span><span>Taglia</span><span>Disp.</span></div>${htmlGr}</div>`; } document.getElementById('list-res-box').innerHTML = h; }).getRisultatiRicerca(art_cerca, m, t, c); }
