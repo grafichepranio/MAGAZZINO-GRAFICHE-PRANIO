@@ -112,25 +112,29 @@
         "blu":"#004085", "giallo":"#ffc107", "grigio":"#6c757d", "rosa":"#e83e8c", 
         "arancio":"#fd7e14", "marrone":"#795548", "viola":"#6f42c1", "beige":"#f5f5dc",
         "azzurro":"#17a2b8", "fuxia":"#ff00ff", "fucsia":"#ff00ff", "light yellow":"#fffacd", 
-        "navy":"#000080", "royal":"#4169e1", "rasberry":"#e30b5d", "raspberry":"#e30b5d", 
+        "navy":"#000040", "royal":"#0053cf", "rasberry":"#e30b5d", "raspberry":"#e30b5d", 
         "verde fluo":"#39ff14", "burgundy":"#800020", "kelly green":"#4cbb17", 
         "verde bottiglia":"#006a4e", "bordeaux":"#800020", "celeste":"#b2ffff",
         "turchese":"#40e0d0", "corallo":"#ff7f50", "salmone":"#fa8072", 
         "senape":"#ffdb58", "antracite":"#383e42", "panna":"#fffff0", 
-        "verde oliva":"#808000", "lilla":"#c8a2c8", "oro":"#ffd700", "argento":"#c0c0c0"
+        "verde oliva":"#808000", "lilla":"#c8a2c8", "oro":"#ffd700", "argento":"#c0c0c0",
+        "purple":"#800080", "pouple":"#800080", "tropical green":"#00b36e",
+        // NUOVI COLORI AGGIUNTI DA TE:
+        "sand":"#c2b280", "sky":"#87ceeb", "verde acqua":"#20b2aa", 
+        "melange":"#a8a8a8", "mint green":"#98ff98", "lavanda":"#b57edc", 
+        "aqua":"#00ffff", "lime":"#32cd32"
       };
       
-      if(m[col]) return m[col];
-
-      // Se ti inventi un colore nuovo che non è in questa lista, genera un colore unico fisso
-      var hash = 0;
-      for (var i = 0; i < col.length; i++) hash = col.charCodeAt(i) + ((hash << 5) - hash);
-      return `hsl(${Math.abs(hash) % 360}, 65%, 40%)`; 
+      return m[col] || "#0084ff"; // Se è totalmente sconosciuto mette l'azzurro Pranio di base
     }
     
     function getTxColor(c) { 
       var col = c.toLowerCase().trim();
-      var chiari = ["bianco", "giallo", "beige", "light yellow", "verde fluo", "panna", "celeste", "senape", "oro", "argento"];
+      var chiari = [
+        "bianco", "giallo", "beige", "light yellow", "verde fluo", "panna", 
+        "celeste", "senape", "oro", "argento", "sand", "sky", "mint green", 
+        "aqua", "lime", "melange"
+      ];
       return chiari.includes(col) ? "#000000" : "#ffffff"; 
     }
 
